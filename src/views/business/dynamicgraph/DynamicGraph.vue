@@ -112,7 +112,7 @@
             <transition name="el-fade-in-linear">
               <img src="./img/deng.png" class="fusheguang" v-show="dengShow"/>
             </transition>
-            <img src="./img/chuansongdai.png" style="width: 889.67px;height: 682.66px;margin-top:60px" />
+            <img src="./img/chuansongdai1.png" style="width: 798.6px;height: 778.11px;margin-top:60px" />
             <div class="show-data-area" style="position: absolute;right: 80px;top: 490px;">
               <div class="show-data-area-top">ID信息</div>
               <div class="show-data-area-content">
@@ -1639,12 +1639,6 @@ export default {
     position: absolute;
     top: 56px;
     right: 342px;
-  }
-  .backgroundimg {
-    background-image: url('./img/chuansongdai.png');
-    background-size: 889.67px 682.66px;
-    background-position: center center;
-    background-repeat: no-repeat;
   }
   .chuansongpadding {
     box-sizing: border-box;
