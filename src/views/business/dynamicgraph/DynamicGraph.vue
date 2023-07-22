@@ -1,6 +1,6 @@
 <template>
   <div class="dynamic">
-    <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 35px;top: 70px;" @click="closeDynamicGraphShow">关闭</el-button>
+    <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 35px;top: 70px;" @click="closeDynamicGraphShow"></el-button>
     <div class="dynamic-left">
       <div class="dynamic-left-top">
         <div>
@@ -107,12 +107,40 @@
       <div>
         <div class="card-title">实时状态监控</div>
         <div class="card-content" style="display: flex;justify-content: center;" ref="parent">
-          <div class="dyscare chuansongpadding" style="width: 900px;height: 100%;position: relative;" ref="child">
-            <img src="./img/fushe2x.png" class="fusheIcon"/>
+          <div class="dyscare chuansongpadding" style="width: 821px;height: 100%;position: relative;" ref="child">
+            <img v-show="false" src="./img/fushe2x.png" class="fusheIcon"/>
             <transition name="el-fade-in-linear">
-              <img src="./img/deng.png" class="fusheguang" v-show="dengShow"/>
+              <img src="./img/deng.png" class="fusheguang" v-show="false"/>
             </transition>
-            <img src="./img/chuansongdai1.png" style="width: 798.6px;height: 778.11px;margin-top:60px" />
+            <img src="./img/chuansongdai1.png" style="width: 820.18px;height: 799.14px;margin-top:60px" />
+            <!-- ab队列遮罩 -->
+            <img src="./img/ab/qp-ab.png" class="arr-ab" style="width: 42px;height: 321px;right: 10px;top: 380px;"/>
+            <!-- bc队列遮罩 -->
+            <img src="./img/bc/qp-bc-1.png" class="arr-bc" style="width: 42px;height: 24px;right: 9px;top: 359px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
+            <img src="./img/bc/qp-bc-2.png" class="arr-bc" style="width: 296px;height: 42px;right: 9px;top: 317px;border-radius: 0 50px 0 50px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
+            <img src="./img/bc/qp-bc-3.png" class="arr-bc" style="width: 42px;height: 125px;right: 262px;top: 192px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
+            <img src="./img/bc/qp-bc-4.png" class="arr-bc" style="width: 198px;height: 42px;top: 193px;right: 64px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
+            <img src="./img/bc/qp-bc-5.png" class="arr-bc" style="width: 42px;height: 46px;top: 147px;right: 65px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
+            <!-- cd队列遮罩 -->
+            <img src="./img/cd/qp-cd-1.png" class="arr-cd" style="width: 42px;height: 38px;right: 64px;top: 109px;" @mouseover="showAllImages('arr-cd')" @mouseout="hideAllImages('arr-cd')"/>
+            <img src="./img/cd/qp-cd-2.png" class="arr-cd" style="width: 547px;height: 41px;right: 63px;top: 68px; border-radius: 50px 50px 0 0;" @mouseover="showAllImages('arr-cd')" @mouseout="hideAllImages('arr-cd')"/>
+            <img src="./img/cd/qp-cd-3.png" class="arr-cd" style="width: 41px;height: 40px;right: 567px;top: 109px;" @mouseover="showAllImages('arr-cd')" @mouseout="hideAllImages('arr-cd')"/>
+            <!-- de队列遮罩 -->
+            <img src="./img/de/qp-de-1.png" class="arr-de" style="width: 42px;height: 44px;right: 567px;top: 149px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
+            <img src="./img/de/qp-de-2.png" class="arr-de" style="width: 207px;height: 42px;right: 402px;top: 193px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
+            <img src="./img/de/qp-de-3.png" class="arr-de" style="width: 43px;height: 119px;right: 359px;top: 192px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
+            <img src="./img/de/qp-de-4.png" class="arr-de" style="width: 309px;height: 42px;right: 359px;top: 311px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
+            <img src="./img/de/qp-de-5.png" class="arr-de" style="width: 42px;height: 62px;right: 625px;top: 353px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
+            <!-- ei队列遮罩层 -->
+            <img src="./img/ei/qp-ei.png" class="arr-ei" style="width: 42px;height: 264px;right: 625px;top: 415px;"/>
+            <!-- jk队列遮罩层 -->
+            <img src="./img/jk/qp-jk.png" class="arr-jk" style="width: 573px;height: 42px;right: 52px;top: 591px;"/>
+            <!-- f队列遮罩 -->
+            <img src="./img/f/qp-f-1.png" class="arr-f" style="width: 146px;height: 42px;right: 665px;top: 474px;" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')"/>
+            <img src="./img/f/qp-f-2.png" class="arr-f" style="width: 43px;height: 175px;right: 768px;top: 299px;" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')"/>
+            <!-- gh队列 -->
+            <img src="./img/gh/qp-gh-1.png" class="arr-gh" style="width: 251px;height: 41px;right: 362px;top: 473px;" @mouseover="showAllImages('arr-gh')" @mouseout="hideAllImages('arr-gh')"/>
+            <img src="./img/gh/qp-gh-2.png" class="arr-gh" style="width: 131px;height: 41px;right: 52px;top: 405px;" @mouseover="showAllImages('arr-gh')" @mouseout="hideAllImages('arr-gh')"/>
             <div class="show-data-area" style="position: absolute;right: 80px;top: 490px;">
               <div class="show-data-area-top">ID信息</div>
               <div class="show-data-area-content">
@@ -162,62 +190,74 @@
               </div>
             </div>
             <!-- 光电星星 -->
-            <div class="guangdian" style="top: 447px;right: 86px;" @click="analogOptoelectronics('A')">
+            <div class="guangdian" style="top: 686px;right: 53px;" @click="analogOptoelectronics('A')">
               <div class='star' v-show="pointA == '1'"></div>
               <div class="pointText">A</div>
             </div>
-            <div class="guangdian" style="top: 185px;right: 140px;" @click="analogOptoelectronics('B')">
+            <div class="guangdian" style="top: 358px;right: 44px;" @click="analogOptoelectronics('B')">
               <div class='star' v-show="pointB == '1'"></div>
               <div class="pointText">B</div>
             </div>
-            <div class="guangdian" style="top: 185px;right: 612px;" @click="analogOptoelectronics('C')">
+            <div class="guangdian" style="top: 127px;right: 102px;" @click="analogOptoelectronics('C')">
               <div class='star' v-show="pointC == '1'"></div>
               <div class="pointText">C</div>
             </div>
-            <div class="guangdian" style="top: 331px;right: 654px;" @click="analogOptoelectronics('D')">
+            <div class="guangdian" style="top: 125px;right: 604px;" @click="analogOptoelectronics('D')">
               <div class='star' v-show="pointD == '1'"></div>
               <div class="pointText">D</div>
             </div>
-            <div class="guangdian" style="top: 434px;right: 674px;" @click="analogOptoelectronics('E')">
+            <div class="guangdian" style="top: 391px;right: 667px;" @click="analogOptoelectronics('E')">
               <div class='star' v-show="pointE == '1'"></div>
               <div class="pointText">E</div>
             </div>
-            <div class="guangdian" style="right: 827px;top: 551px;" @click="analogOptoelectronics('F')">
+            <div class="guangdian" style="right: 716px;top: 512px;" @click="analogOptoelectronics('F')">
               <div class='star' v-show="pointF == '1'"></div>
               <div class="pointText">F</div>
             </div>
-            <div class="guangdian" style="right: 792px;top: 600px;" @click="analogOptoelectronics('G')">
+            <div class="guangdian" style="right: 465px;top: 421px;" @click="analogOptoelectronics('G')">
               <div class='star' v-show="pointG == '1'"></div>
               <div class="pointText">G</div>
             </div>
-            <div class="guangdian" style="right: 446px;top: 683px;" @click="analogOptoelectronics('H')">
+            <div class="guangdian" style="right: 91px;top: 442px;" @click="analogOptoelectronics('H')">
               <div class='star' v-show="pointH == '1'"></div>
               <div class="pointText">H</div>
             </div>
+            <div class="guangdian" style="right: 659px;top: 638px;">
+              <div class='star' v-show="false"></div>
+              <div class="pointText">I</div>
+            </div>
+            <div class="guangdian" style="right: 526px;top: 638px;">
+              <div class='star' v-show="false"></div>
+              <div class="pointText">J</div>
+            </div>
+            <div class="guangdian" style="right: 60px;top: 545px;">
+              <div class='star' v-show="false"></div>
+              <div class="pointText">K</div>
+            </div>
             <!-- 电机状态 -->
-            <div :class="['dianji', dianJiStatusArr[7] == '1' ? 'dianji-active' : '']" style="top: 640px;right: 133px;">100#电机</div>
-            <div :class="['dianji', dianJiStatusArr[6] == '1' ? 'dianji-active' : '']" style="top: 416px;right: 6px;">101#电机</div>
-            <div :class="['dianji', dianJiStatusArr[5] == '1' ? 'dianji-active' : '']" style="top: 386px;right: 190px;">102#电机</div>
-            <div :class="['dianji', dianJiStatusArr[4] == '1' ? 'dianji-active' : '']" style="top: 258px;right: 190px;">103#电机</div>
-            <div :class="['dianji', dianJiStatusArr[3] == '1' ? 'dianji-active' : '']" style="top: 132px;right: 190px;">104#电机</div>
-            <div :class="['dianji', dianJiStatusArr[2] == '1' ? 'dianji-active' : '']" style="top: 88px;right: 450px;">105#电机</div>
-            <div :class="['dianji', dianJiStatusArr[1] == '1' ? 'dianji-active' : '']" style="top: 131px;right: 538px;">106#电机</div>
-            <div :class="['dianji', dianJiStatusArr[0] == '1' ? 'dianji-active' : '']" style="top: 259px;right: 516px;">107#电机</div>
-            <div :class="['dianji', dianJiStatusArr[15] == '1' ? 'dianji-active' : '']" style="top: 379px;right: 516px;">108#电机</div>
-            <div :class="['dianji', dianJiStatusArr[14] == '1' ? 'dianji-active' : '']" style="top: 379px;right: 641px;">109#电机</div>
-            <div :class="['dianji', dianJiStatusArr[13] == '1' ? 'dianji-active' : '']" style="top: 420px;right: 727px;">110#电机</div>
-            <div :class="['dianji', dianJiStatusArr[12] == '1' ? 'dianji-active' : '']" style="top: 638px;right: 730px;">111#电机</div>
-            <div :class="['dianji', dianJiStatusArr[11] == '1' ? 'dianji-active' : '']" style="top: 639px;right: 627px;">112#电机</div>
-            <div :class="['dianji', dianJiStatusArr[10] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 450px;">113#电机</div>
-            <div :class="['dianji', dianJiStatusArr[9] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 264px;">114#电机</div>
-            <div :class="['dianji', dianJiStatusArr[8] == '1' ? 'dianji-active' : '']" style="top: 690px;right: 367px;">115#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[7] == '1' ? 'dianji-active' : '']" style="top: 640px;right: 133px;">100#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[6] == '1' ? 'dianji-active' : '']" style="top: 416px;right: 6px;">101#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[5] == '1' ? 'dianji-active' : '']" style="top: 386px;right: 190px;">102#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[4] == '1' ? 'dianji-active' : '']" style="top: 258px;right: 190px;">103#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[3] == '1' ? 'dianji-active' : '']" style="top: 132px;right: 190px;">104#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[2] == '1' ? 'dianji-active' : '']" style="top: 88px;right: 450px;">105#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[1] == '1' ? 'dianji-active' : '']" style="top: 131px;right: 538px;">106#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[0] == '1' ? 'dianji-active' : '']" style="top: 259px;right: 516px;">107#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[15] == '1' ? 'dianji-active' : '']" style="top: 379px;right: 516px;">108#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[14] == '1' ? 'dianji-active' : '']" style="top: 379px;right: 641px;">109#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[13] == '1' ? 'dianji-active' : '']" style="top: 420px;right: 727px;">110#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[12] == '1' ? 'dianji-active' : '']" style="top: 638px;right: 730px;">111#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[11] == '1' ? 'dianji-active' : '']" style="top: 639px;right: 627px;">112#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[10] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 450px;">113#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[9] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 264px;">114#电机</div>
+            <div v-show="false" :class="['dianji', dianJiStatusArr[8] == '1' ? 'dianji-active' : '']" style="top: 690px;right: 367px;">115#电机</div>
             <!-- 队列信息 -->
-            <el-link type="danger" style="position: absolute;top: 326px;right: 109px;" @click="showChuanSong('AB')">{{ '101-103区域货物缓存队列 (' + arrAB.length + ')' }}</el-link>
-            <el-link type="danger" style="position: absolute;top: 86px;right: 118px;" @click="showChuanSong('BC')">{{ '104-106区域货物缓存队列 (' + arrBC.length + ')' }}</el-link>
-            <el-link type="danger" style="position: absolute;top: 320px;right: 536px;" @click="showChuanSong('CD')">{{ '107-109区域货物缓存队列 (' + arrCD.length + ')' }}</el-link>
-            <el-link type="danger" style="position: absolute;top: 445px;left: 240px;" @click="showChuanSong('DG')">{{ '110-111区域货物缓存队列 (' + arrDG.length + ')' }}</el-link>
-            <el-link type="danger" style="position: absolute;top: 395px;left: -9px;" @click="showChuanSong('F')">{{ '剔除货物缓存队列 (' + arrF.length + ')' }}</el-link>
-            <el-link type="danger" style="position: absolute;top: 689px;right: 542px;" @click="showChuanSong('GH')">{{ '下货区缓存队列 (' + arrGH.length + ')' }}</el-link>
+            <!-- <el-link v-show="false" type="danger" style="position: absolute;top: 326px;right: 109px;" @click="showChuanSong('AB')">{{ '101-103区域货物缓存队列 (' + arrAB.length + ')' }}</el-link>
+            <el-link v-show="false" type="danger" style="position: absolute;top: 86px;right: 118px;" @click="showChuanSong('BC')">{{ '104-106区域货物缓存队列 (' + arrBC.length + ')' }}</el-link>
+            <el-link v-show="false" type="danger" style="position: absolute;top: 320px;right: 536px;" @click="showChuanSong('CD')">{{ '107-109区域货物缓存队列 (' + arrCD.length + ')' }}</el-link>
+            <el-link v-show="false" type="danger" style="position: absolute;top: 445px;left: 240px;" @click="showChuanSong('DG')">{{ '110-111区域货物缓存队列 (' + arrDG.length + ')' }}</el-link>
+            <el-link v-show="false" type="danger" style="position: absolute;top: 395px;left: -9px;" @click="showChuanSong('F')">{{ '剔除货物缓存队列 (' + arrF.length + ')' }}</el-link>
+            <el-link v-show="false" type="danger" style="position: absolute;top: 689px;right: 542px;" @click="showChuanSong('GH')">{{ '下货区缓存队列 (' + arrGH.length + ')' }}</el-link> -->
             <!-- 预警 -->
             <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: 41px;top: 663px;"/>
             <img src="./img/baojing.png" class="warning-img" v-show="baojingShow" style="top: 717px;left: 352px;"/>
@@ -299,12 +339,14 @@
         </div>
       </div>
       <div class="drawer-right">
-        <div :class="['transform-card',traAB?'transform-card-active':'']" @dragover.prevent @drop="dropItem('AB', $event)" @click="showCache('AB')">101-103区域货物缓存队列</div>
-        <div :class="['transform-card',traBC?'transform-card-active':'']" @dragover.prevent @drop="dropItem('BC', $event)" @click="showCache('BC')">104-106区域货物缓存队列</div>
-        <div :class="['transform-card',traCD?'transform-card-active':'']" @dragover.prevent @drop="dropItem('CD', $event)" @click="showCache('CD')">107-109区域货物缓存队列</div>
-        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">110-111区域货物缓存队列</div>
-        <div :class="['transform-card',traF?'transform-card-active':'']" @dragover.prevent @drop="dropItem('F', $event)" @click="showCache('F')">剔除货物缓存队列</div>
-        <div :class="['transform-card',traGH?'transform-card-active':'']" @dragover.prevent @drop="dropItem('GH', $event)" @click="showCache('GH')">下货区缓存队列</div>
+        <div :class="['transform-card',traAB?'transform-card-active':'']" @dragover.prevent @drop="dropItem('AB', $event)" @click="showCache('AB')">A-B队列</div>
+        <div :class="['transform-card',traBC?'transform-card-active':'']" @dragover.prevent @drop="dropItem('BC', $event)" @click="showCache('BC')">B-C队列</div>
+        <div :class="['transform-card',traCD?'transform-card-active':'']" @dragover.prevent @drop="dropItem('CD', $event)" @click="showCache('CD')">C-D队列</div>
+        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">D-E队列</div>
+        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">E-I队列</div>
+        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">F队列</div>
+        <div :class="['transform-card',traF?'transform-card-active':'']" @dragover.prevent @drop="dropItem('F', $event)" @click="showCache('F')">G-H队列</div>
+        <div :class="['transform-card',traGH?'transform-card-active':'']" @dragover.prevent @drop="dropItem('GH', $event)" @click="showCache('GH')">J-K队列</div>
       </div>
     </el-drawer>
   </div>
@@ -331,10 +373,12 @@ export default {
       arrAB: [],
       arrBC: [],
       arrCD: [],
-      arrDG: [],
+      arrDE: [],
+      arrEI: [],
       arrGH: [],
-      arrF: [], // 被剔除的箱子缓存
-      tempArrF: [], // 经过E点，不合格的箱子，暂时缓存在临时队列，只有经过F点的时候，才去实际的处理箱子
+      arrJK: [],
+      arrF: [], // 下货队列
+      tempArrF: [], // 经过E点，下货箱子缓存
       // 每个点位的值，根据收到PLC指令为准，值为1或0
       pointA: '0',
       pointB: '0',
@@ -344,6 +388,9 @@ export default {
       pointF: '0',
       pointG: '0',
       pointH: '0',
+      pointI: '0',
+      pointJ: '0',
+      pointK: '0',
       // 控制拖动传送带抽屉弹窗是否显示和隐藏
       drawer: false,
       // 当前点击的传送带区域内的箱子列表，一个中间变量
@@ -385,8 +432,6 @@ export default {
       l11: 0,
       // l2长度，取配置
       l2: 0,
-      // 最后一个经过E点箱子的id，用于获取当前经过E点箱子的模拟id
-      lastRouteEPoint: '',
       // 最后一个经过H点箱子的id，用于获取当前经过E点箱子的模拟id
       lastRouteHPoint: '',
       // 最后一个经过F点箱子的id，用于获取当前经过E点箱子的模拟id
@@ -405,7 +450,6 @@ export default {
       logArr: [], // 输送线运行日志
       errorLogArr: [], // PLC报警日志
       banLoadStatus: false, // 是否禁止上货
-      judgeLoadPoint: 'D', // 判断禁止上货的点位
       judgeBanLoadBoxImitateId: '', // 到达判断禁止上货点位后，需要判断的箱子id
       ifNextPassABoxIsFirst: true, // 刚开始时，第一个经过A点的箱子一定是第一个
       lastNewBoxPassABoxImitateId: '', // 新增的箱子，最后一个经过A点的模拟Id
@@ -447,6 +491,7 @@ export default {
               this.judgeBanLoadBoxImitateId = boxImitateId;
               this.ifNextPassABoxIsFirst = false; // 设置为false,下一个经过A点的箱子绝不是此批次第一个箱子了
             }
+            // 新增的箱子，最后一个经过A点的模拟Id
             this.lastNewBoxPassABoxImitateId = boxImitateId;
             // 新上货物时，报警和预警先关闭
             this.yujingShow = false;
@@ -528,7 +573,7 @@ export default {
         // enteringPonitE
         if(!this.enteringPonitE && newVal === '1' && oldVal === '0') { //货物开始进入B点
           this.enteringPonitE = true
-          if(this.arrDG.length > 0) {
+          if(this.arrDE.length > 0) {
             // 进入E点，清空读码信息
             this.labyrinthScanCode = '';
             this.$message.warning('货物进入E点')
@@ -540,26 +585,9 @@ export default {
           if(this.arrDG.length > 0) {
             // 走出E点，读码
             this.labyrinthScanCode = this.labyrinthScanCodeTemp.replace(/\s/g,'');
-            if(this.lastRouteEPoint === '') { // 说明物品第一次经过E点，直接取DG数组的第一个元素
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
-            } else {
-              // 查找DG数组，lastRouteEPoint的元素，那么下一个必定是此时经过E点的元素
-              const indexLast = this.arrDG.findIndex(item => {
-                return item.boxImitateId === this.lastRouteEPoint
-              })
-              if(indexLast != -1) {
-                // 找到了，lastRouteEPoint的下一个元素必定是经过E点的元素
-                // 如果找到的元素是this.arrDG的最后一个元素，则下一个元素就是第一个元素
-                if(indexLast === (this.arrDG.length - 1)) {
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
-                } else {
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[indexLast + 1].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
-                }
-              } else {
-                // 找不到，队列第一个肯定就是经过E点的元素
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
-              }
-            }
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
+            // 把箱子推入EI队列
+            this.arrEI.push(this.arrDG[0]);
           }
         } else {
           // 先暂定报警吧，因为肯定不会出现这种情况，出现了视为异常，不做任何处理
@@ -574,16 +602,37 @@ export default {
     },
     pointG: {
       handler(newVal, oldVal) {
-        if(this.arrDG.length > 0) {
+        if(this.arrEI.length > 0) {
           this.dealBoxLogic('G')
         }
       }
     },
     pointH: {
       handler(newVal, oldVal) {
-        if(this.arrGH.length > 0) {
-          this.dealBoxLogic('H')
+        // if(this.arrGH.length > 0) {
+        //   this.dealBoxLogic('H')
+        // }  
+      }
+    },
+    pointI: {
+      handler(newVal, oldVal) {
+        if(this.arrEI.length > 0) {
+          this.dealBoxLogic('I')
         }  
+      }
+    },
+    pointJ: {
+      handler(newVal, oldVal) {
+        if(this.arrEI.length > 0) {
+          this.dealBoxLogic('J')
+        }  
+      }
+    },
+    pointK: {
+      handler(newVal, oldVal) {
+        // if(this.arrEI.length > 0) {
+        //   this.dealBoxLogic('K')
+        // }  
       }
     },
     err1: {
@@ -1034,6 +1083,11 @@ export default {
           break;
         case 'C':
           if(this.pointC === '1') {
+            // 如果是下一批第一个箱子经过E，则取消下货预警和报警
+            if(this.arrDE[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+              this.yujingShow = false;
+              this.baojingShow = false;
+            }
             this.arrCD.push(this.arrBC[0]);
             this.arrCD[this.arrCD.length - 1].turnsInfoList[this.arrCD[this.arrCD.length - 1].numberTurns - 1].passCTime = moment().format('YYYY-MM-DD HH:mm:ss');
             // 删除BC队列第一个
@@ -1043,64 +1097,68 @@ export default {
           break;
         case 'D':
           if(this.pointD === '1') {
-            // 判断是否在D点判断禁止上货
-            if(this.judgeLoadPoint === 'D') {
-              // 判断是不是符合禁止上货条件
-              if(this.arrCD[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
-                this.banLoadStatus = true; // 显示禁止上货图标
-                // 给PLC发送禁止上货指令
-                ipcRenderer.send('writeValuesToPLC', 'DBW26', 1);
-              }
-            }
             // 把CD队列第一个货物出列，进入DG
-            this.arrDG.push(this.arrCD[0]);
-            this.arrDG[this.arrDG.length - 1].turnsInfoList[this.arrDG[this.arrDG.length - 1].numberTurns - 1].passDTime = moment().format('YYYY-MM-DD HH:mm:ss');
+            this.arrDE.push(this.arrCD[0]);
+            this.arrDE[this.arrDE.length - 1].turnsInfoList[this.arrDE[this.arrDE.length - 1].numberTurns - 1].passDTime = moment().format('YYYY-MM-DD HH:mm:ss');
             // 删除BC队列第一个
             this.arrCD.splice(0,1);
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[this.arrDG.length - 1].boxImitateId + '经过D点，扫码信息：' + this.arrDG[this.arrDG.length - 1].loadScanCode, 'log');
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDE[this.arrDE.length - 1].boxImitateId + '经过D点，扫码信息：' + this.arrDE[this.arrDE.length - 1].loadScanCode, 'log');
           }
           break;
         case 'E':
           // 判断进入E点的箱子工艺是否合格，合格不做处理，不合格剔除
-          if(this.lastRouteEPoint === '') { // 说明物品第一次经过E点，直接取DG数组的第一个元素
-            this.judgeIfDGqualified(0);
+          // 判断是不是符合禁止上货条件
+          if(this.arrDE[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+            this.banLoadStatus = true; // 显示禁止上货图标
+            // 给PLC发送禁止上货指令
+            ipcRenderer.send('writeValuesToPLC', 'DBW26', 1);
+          }
+          this.nowEBoxImitateId = this.arrDE[0].boxImitateId;
+          // 更新进入E点时间
+          this.arrDE[0].turnsInfoList[this.arrDE[0].numberTurns - 1].passETime = moment().format('YYYY-MM-DD HH:mm:ss');
+          if(this.arrDE[0].qualified === '0') {
+            // 执行剔除命令
+            ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物不合格！执行剔除命令！', 'log');
+            // 给箱子标记剔除标识
+            this.arrDE[0].tichuFlag = true;
           } else {
-            // 查找DG数组，lastRouteEPoint的元素，那么下一个必定是此时经过E点的元素
-            const indexLast = this.arrDG.findIndex(item => {
-              return item.boxImitateId === this.lastRouteEPoint
-            })
-            if(indexLast != -1) {
-              // 找到了，lastRouteEPoint的下一个元素必定是经过E点的元素
-              // 如果找到的元素是this.arrDG的最后一个元素，则下一个元素就是第一个元素
-              if(indexLast === (this.arrDG.length - 1)) {
-                this.judgeIfDGqualified(0);
-              } else {
-                this.judgeIfDGqualified(indexLast + 1);
-              }
+            ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！', 'log');
+
+            // 合格需要判断是回流、翻转、还是下货。判断是否符合下货条件。
+            if (this.arrDE[0].numberTurns >= this.orderMainDy.numberTurns) {
+              // 符合下货条件，展示预警，货物需要下线标识。
+              this.yujingShow = true;
+              // 发送下货指令
+              ipcRenderer.send('writeValuesToPLC', 'DBW16', 1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！符合下货条件，执行下货命令！', 'log');
+              // 给箱子标记下货标识
+              this.arrDE[0].xiahuoFlag = true;
             } else {
-              // 找不到，队列第一个肯定就是经过E点的元素
-              this.judgeIfDGqualified(0);
+              // 如果是翻转进入GH队列，不翻转进入JK队列
+              if(this.orderMainDy.revertFlag == '翻转') {
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！执行翻转命令！', 'log');
+                ipcRenderer.send('writeValuesToPLC', 'DBW12', 1);
+              } else {
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！执行回流命令！', 'log');
+                ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
+              }
             }
           }
           break;
         case 'F':
-          if(this.pointF === '1') {
-            if(this.tempArrF.length > 0) {
-              this.nowTiChuNum++;
-              // tempArrF 缓存队列第一个一定是经过F点的箱子
-              this.arrF.push(this.tempArrF[0]);
-              // 执行剔除日志
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.tempArrF[0].boxImitateId + '经过F点，扫码信息：' + this.tempArrF[0].loadScanCode + '。被剔除！', 'log');
-              // 删除tempArrF 第一个箱子
-              this.tempArrF.splice(0, 1);
-              // 在DG数组移除元素
-              for (let index = 0; index < this.arrDG.length; index++) {
-                if(this.arrF[this.arrF.length - 1].boxImitateId == this.arrDG[index].boxImitateId) {
-                  this.arrDG.splice(index, 1);
-                  break;
-                }
-              }
+          // 下货，判断箱子是否有下货标识 nowTiChuNum当前剔除数量
+          if(this.arrEI.length > this.nowTiChuNum) {
+            // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
+            if(this.arrtEI[this.nowTiChuNum].xiahuoFlag) {
+              // 符合进入F队列
+              this.arrF.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrF[this.arrF.length - 1].turnsInfoList[this.arrF[this.arrF.length - 1].numberTurns - 1].passFTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrF[this.arrF.length - 1].loadScanCode, 'log');
               // 生成箱报告
+              this.nowOutNum++;
               const param = {
                 boxMainDTOList: [this.arrF[this.arrF.length - 1]],
                 finishOrder: false
@@ -1123,118 +1181,127 @@ export default {
           break;
         case 'G':
           if(this.pointG === '1') {
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '经过G点，扫码信息：' + this.arrDG[0].loadScanCode + '。当前 ' + this.arrDG[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrDG[0].numberTurns)) + ' 圈', 'log');
-            // 判断是否符合下货条件
-            if (this.arrDG[0].numberTurns >= this.orderMainDy.numberTurns) {
-              // 符合下货条件，展示预警，货物需要下线标识。
-              this.yujingShow = true;
-              this.nowOutNum++;
-              this.arrDG[0].turnsInfoList[this.arrDG[0].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              const param = {
-                boxMainDTOList: [this.arrDG[0]],
-                finishOrder: false
-              }
-              // 生成箱报告
-              await HttpUtil.post('/box/save', param).then((res)=> {
-                if(res.data == 1) {
-                  this.$message.success('货物：' + this.arrDG[0].boxImitateId + '，已生成箱报告！')
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '，已生成箱报告！', 'log');
-                } else {
-                  this.$message.error('货物：' + this.arrDG[0].boxImitateId + '，生成箱报告失败！')
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '，生成箱报告失败！', 'log');
-                }
-              }).catch((err)=> {
-                this.$message.error('货物：' + this.arrDG[0].boxImitateId + '，生成箱报告失败！' + err)
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '，生成箱报告失败！' + err, 'log');
-              });
+            if(this.arrEI.length > this.nowTiChuNum) {
+              this.arrGH.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
             }
-            // 把DG队列第一个货物出列，进入GH
-            this.arrGH.push(this.arrDG[0]);
-            this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            // 删除DG队列第一个
-            this.arrDG.splice(0,1);
-            console.log(this.arrGH)
+            // todo 这里留着，一会H和K点用得到
+            // this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '经过G点，扫码信息：' + this.arrDG[0].loadScanCode + '。当前 ' + this.arrDG[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrDG[0].numberTurns)) + ' 圈', 'log');
+            // // 把DG队列第一个货物出列，进入GH
+            // this.arrGH.push(this.arrDG[0]);
+            // this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
+            // // 删除DG队列第一个
+            // this.arrDG.splice(0,1);
+            // console.log(this.arrGH)
           }
           break;
         case 'H':
           if(this.pointH === '1') {
-            let indexHBox = 0;
-            if(this.lastRouteHPoint != '') {
-              // 查找arrGH数组，lastRouteHPoint的元素，那么下一个必定是此时经过E点的元素
-              const indexLast = this.arrGH.findIndex(item => {
-                return item.boxImitateId === this.lastRouteHPoint
-              })
-              if(indexLast != -1) {
-                // 找到了，lastRouteHPoint的下一个元素必定是经过E点的元素
-                // 如果找到的元素是this.arrGH的最后一个元素，则下一个元素就是arrGH的第一个元素，即 indexHBox = 0
-                if(indexLast != (this.arrGH.length - 1)) {
-                  indexHBox = indexLast + 1;
-                }
-              }
+            if(this.arrGH.length > 0) {
+              // 将arrGH队列第一个进入AB队列，箱子圈数加1
+              this.arrAB.push(this.arrGH[0]);
+              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
             }
-            this.lastRouteHPoint = this.arrGH[indexHBox].boxImitateId;
-            // 不是箱子最后一圈，更新进入H点时间
-            if(this.arrGH[indexHBox].numberTurns != this.orderMainDy.numberTurns) {
-              console.log(this.arrGH[indexHBox].numberTurns)
-              console.log(this.orderMainDy.numberTurns)
-              this.arrGH[indexHBox].turnsInfoList[this.arrGH[indexHBox].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            }
-            // 判断当前箱子的圈数，和全局圈数
-            if(this.arrGH[indexHBox].numberTurns >= this.nowNumberTurns) {
-              // 更新全局圈数 和 报警信号
-              if (this.arrGH[indexHBox].numberTurns >= this.orderMainDy.numberTurns) {
-                this.baojingShow = true;
+            // let indexHBox = 0;
+            // if(this.lastRouteHPoint != '') {
+            //   // 查找arrGH数组，lastRouteHPoint的元素，那么下一个必定是此时经过E点的元素
+            //   const indexLast = this.arrGH.findIndex(item => {
+            //     return item.boxImitateId === this.lastRouteHPoint
+            //   })
+            //   if(indexLast != -1) {
+            //     // 找到了，lastRouteHPoint的下一个元素必定是经过E点的元素
+            //     // 如果找到的元素是this.arrGH的最后一个元素，则下一个元素就是arrGH的第一个元素，即 indexHBox = 0
+            //     if(indexLast != (this.arrGH.length - 1)) {
+            //       indexHBox = indexLast + 1;
+            //     }
+            //   }
+            // }
+            // this.lastRouteHPoint = this.arrGH[indexHBox].boxImitateId;
+            // // 不是箱子最后一圈，更新进入H点时间
+            // if(this.arrGH[indexHBox].numberTurns != this.orderMainDy.numberTurns) {
+            //   console.log(this.arrGH[indexHBox].numberTurns)
+            //   console.log(this.orderMainDy.numberTurns)
+            //   this.arrGH[indexHBox].turnsInfoList[this.arrGH[indexHBox].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
+            // }
+            // // 判断当前箱子的圈数，和全局圈数
+            // if(this.arrGH[indexHBox].numberTurns >= this.nowNumberTurns) {
+            //   // 更新全局圈数 和 报警信号
+            //   if (this.arrGH[indexHBox].numberTurns >= this.orderMainDy.numberTurns) {
+            //     this.baojingShow = true;
+            //     const param = {
+            //       boxMainDTOList: [this.arrGH[indexHBox]],
+            //       finishOrder: false
+            //     }
+            //     // 更新箱报告的H点的时间
+            //     await HttpUtil.post('/box/save', param).then((res)=> {
+            //       if(res.data == 1) {
+            //         this.$message.success('货物：' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！')
+            //         this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！', 'log');
+            //       } else {
+            //         this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！')
+            //         this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！', 'log');
+            //       }
+            //     }).catch((err)=> {
+            //       this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err)
+            //       this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err, 'log');
+            //     });
+            //   } else {
+            //     // 有货物的圈数和全局圈数一致时，则全局圈数加1
+            //     if(this.arrGH[indexHBox].boxImitateId == this.judgeBanLoadBoxImitateId) {
+            //       this.nowNumberTurns++;
+            //     }
+            //   }
+            // }
+          }
+          break;
+        case 'I':
+          // 先毙掉你 一会处理剔除队列能用到你
+          if(this.pointI === '1') {
+            // 剔除，判断箱子是否有剔除标识 nowTiChuNum当前剔除数量
+            if(this.arrEI.length > this.nowTiChuNum) {
+              // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
+              if(this.arrtEI[this.nowTiChuNum].tichuFlag) {
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '经过I点，扫码信息：' + this.arrtEI[this.nowTiChuNum].loadScanCode + '。被剔除！', 'log');
+                this.arrtEI[this.nowTiChuNum].turnsInfoList[this.arrtEI[this.nowTiChuNum].numberTurns - 1].passITime = moment().format('YYYY-MM-DD HH:mm:ss');
+                // 生成箱报告
+                this.nowTiChuNum++;
                 const param = {
-                  boxMainDTOList: [this.arrGH[indexHBox]],
+                  boxMainDTOList: [this.arrtEI[this.nowTiChuNum]],
                   finishOrder: false
                 }
-                // 更新箱报告的H点的时间
+                // 生成箱报告
                 await HttpUtil.post('/box/save', param).then((res)=> {
                   if(res.data == 1) {
-                    this.$message.success('货物：' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！')
-                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！', 'log');
+                    this.$message.success('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！', 'log');
                   } else {
-                    this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！')
-                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！', 'log');
+                    this.$message.error('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！', 'log');
                   }
                 }).catch((err)=> {
-                  this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err)
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err, 'log');
+                  this.$message.error('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err)
+                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err, 'log');
                 });
-              } else {
-                // 有货物的圈数和全局圈数一致时，则全局圈数加1
-                if(this.arrGH[indexHBox].boxImitateId == this.judgeBanLoadBoxImitateId) {
-                  this.nowNumberTurns++;
-                }
               }
             }
           }
           break;
+        case 'J':
+          if(this.pointJ === '1') {
+            if(this.arrEI.length > this.nowTiChuNum) {
+              this.arrJK.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrJK[this.arrJK.length - 1].turnsInfoList[this.arrJK[this.arrJK.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
+            }
+          }
+        break;
         default:
           break;
-      }
-    },
-    judgeIfDGqualified(index) {
-      // 如果是下一批第一个箱子经过E，则取消下货预警和报警
-      if(this.arrDG[index].boxImitateId == this.judgeBanLoadBoxImitateId) {
-        this.yujingShow = false;
-        this.baojingShow = false;
-      }
-      this.nowEBoxImitateId = this.arrDG[index].boxImitateId;
-      this.lastRouteEPoint = this.arrDG[index].boxImitateId;
-      // 更新进入E点时间
-      this.arrDG[index].turnsInfoList[this.arrDG[index].numberTurns - 1].passETime = moment().format('YYYY-MM-DD HH:mm:ss');
-      if(this.arrDG[index].qualified === '0') {
-        // 执行剔除命令
-        ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
-        console.log('剔除')
-        this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[index].boxImitateId + '经过E点,货物不合格！执行剔除命令！', 'log');
-        // 将不合格货物加入 tempArrF 缓存队列
-        this.tempArrF.push(this.arrDG[index])
-      } else {
-        // 合格无需处理，写0即可
-        ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
-        this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[index].boxImitateId + '经过E点,货物合格！', 'log');
       }
     },
     closeDynamicGraphShow() {
@@ -1334,7 +1401,6 @@ export default {
       this.arrDG = [];
       this.arrGH = [];
       this.arrF = []; // 被剔除的箱子缓存
-      this.tempArrF = []; // 经过E点，不合格的箱子，暂时缓存在临时队列，只有经过F点的时候，才去实际的处理箱子
       // 当前点击的传送带区域内的箱子列表，一个中间变量
       this.boxArr = [];
       // 当前打开的是哪块传送带队列
@@ -1356,7 +1422,6 @@ export default {
       this.enteringPonitA = false;
       // 是否正在进入B点
       this.enteringPonitB = false;
-      this.lastRouteEPoint = '';
       this.lastRouteHPoint = '';
       this.lastRouteFPoint = '';
       this.yujingShow = false,
@@ -1383,7 +1448,6 @@ export default {
         if(res.data) {
           this.l11 = res.data.oneOneLength;
           this.l2 = res.data.twoLength;
-          this.judgeLoadPoint = res.data.judgeLoadPoint;
         } else {
           this.$message.error('config error! 更新配置错误！')
         }
@@ -1500,6 +1564,18 @@ export default {
       } else {
         return value; // 非负数保持不变
       }
+    },
+    showAllImages(className){
+      var images = document.getElementsByClassName(className);
+      for (var i = 0; i < images.length; i++) {
+        images[i].style.opacity = '1'; // 显示所有图片
+      }
+    },
+    hideAllImages(className){
+      var images = document.getElementsByClassName(className);
+      for (var i = 0; i < images.length; i++) {
+        images[i].style.opacity = '0'; // 隐藏所有图片
+      }
     }
   },
   created() {
@@ -1521,6 +1597,9 @@ export default {
       // this.pointF = this.guangDianStatusArr[2];
       // this.pointG = this.guangDianStatusArr[1];
       // this.pointH = this.guangDianStatusArr[0];
+      // this.pointI = this.guangDianStatusArr[15];
+      // this.pointG = this.guangDianStatusArr[14];
+      // this.pointK = this.guangDianStatusArr[13];
       // --------无PLC测试时，这里以上代码毙掉--------
       this.dianJiStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW72).toString(2), 16);
       this.lightBeamRealTimeSpeed = Number(eventData.DBW68);
@@ -1645,6 +1724,7 @@ export default {
     .show-data-area {
       width:250px;
       height: 32px;
+      display: none;
       &-top {
         height: 32px;
         width: 100px;
@@ -1667,6 +1747,21 @@ export default {
           color: #000000;
         }
       }
+    }
+    .arr-ab, .arr-bc, .arr-cd, .arr-de, .arr-ei, .arr-jk, .arr-f, .arr-gh {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+    .arr-ab:hover {
+      opacity: 1;
+    }
+    .arr-ei:hover {
+      opacity: 1;
+    }
+    .arr-jk:hover {
+      opacity: 1;
     }
   }
   &-left{
@@ -1831,7 +1926,7 @@ export default {
         }
         .pointText {
           margin-left: 46px;
-          font-size: 28px;
+          font-size: 20px;
           color: #D43030;
         }
         .star{
