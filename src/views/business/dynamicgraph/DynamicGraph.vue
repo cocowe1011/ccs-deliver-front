@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic">
     <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 15px;top: 70px;" @click="closeDynamicGraphShow"></el-button>
-    <div class="dynamic-left" v-show="false">
+    <div class="dynamic-left">
       <div class="dynamic-left-top">
         <div>
           <div class="card-title">实时数据监控</div>
@@ -108,13 +108,13 @@
         <div class="card-title">实时状态监控</div>
         <div class="card-content" style="display: flex;justify-content: center;" ref="parent">
           <div class="dyscare chuansongpadding" style="width: 821px;height: 100%;position: relative;" ref="child">
-            <img v-show="false" src="./img/fushe2x.png" class="fusheIcon"/>
+            <img src="./img/fushe2x.png" class="fusheIcon"/>
             <transition name="el-fade-in-linear">
-              <img src="./img/deng.png" class="fusheguang" v-show="false"/>
+              <img src="./img/deng.png" class="fusheguang" v-show="dengShow"/>
             </transition>
             <img src="./img/chuansongdai1.png" style="width: 820.18px;height: 799.14px;margin-top:60px" />
             <!-- ab队列遮罩 -->
-            <img src="./img/ab/qp-ab.png" class="arr-ab" style="width: 42px;height: 321px;right: 10px;top: 380px;"/>
+            <img src="./img/ab/qp-ab.png" class="arr-ab" style="width: 42px;height: 321px;right: 10px;top: 380px;" @mouseover="showAllImages('arr-ab')" @mouseout="hideAllImages('arr-ab')"/>
             <!-- bc队列遮罩 -->
             <img src="./img/bc/qp-bc-1.png" class="arr-bc" style="width: 42px;height: 24px;right: 9px;top: 359px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
             <img src="./img/bc/qp-bc-2.png" class="arr-bc" style="width: 296px;height: 42px;right: 9px;top: 317px;border-radius: 0 50px 0 50px;" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')"/>
@@ -132,58 +132,58 @@
             <img src="./img/de/qp-de-4.png" class="arr-de" style="width: 309px;height: 42px;right: 359px;top: 311px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
             <img src="./img/de/qp-de-5.png" class="arr-de" style="width: 42px;height: 62px;right: 625px;top: 353px;" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')"/>
             <!-- ei队列遮罩层 -->
-            <img src="./img/ei/qp-ei.png" class="arr-ei" style="width: 42px;height: 264px;right: 625px;top: 415px;"/>
+            <img src="./img/ei/qp-ei.png" class="arr-ei" style="width: 42px;height: 264px;right: 625px;top: 415px;" @mouseover="showAllImages('arr-ei')" @mouseout="hideAllImages('arr-ei')"/>
             <!-- jk队列遮罩层 -->
-            <img src="./img/jk/qp-jk.png" class="arr-jk" style="width: 573px;height: 42px;right: 52px;top: 591px;"/>
+            <img src="./img/jk/qp-jk.png" class="arr-jk" style="width: 573px;height: 42px;right: 52px;top: 591px;" @mouseover="showAllImages('arr-jk')" @mouseout="hideAllImages('arr-jk')"/>
             <!-- f队列遮罩 -->
             <img src="./img/f/qp-f-1.png" class="arr-f" style="width: 146px;height: 42px;right: 665px;top: 474px;" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')"/>
             <img src="./img/f/qp-f-2.png" class="arr-f" style="width: 43px;height: 175px;right: 768px;top: 299px;" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')"/>
             <!-- gh队列 -->
             <img src="./img/gh/qp-gh-1.png" class="arr-gh" style="width: 251px;height: 41px;right: 362px;top: 473px;" @mouseover="showAllImages('arr-gh')" @mouseout="hideAllImages('arr-gh')"/>
             <img src="./img/gh/qp-gh-2.png" class="arr-gh" style="width: 131px;height: 41px;right: 52px;top: 405px;" @mouseover="showAllImages('arr-gh')" @mouseout="hideAllImages('arr-gh')"/>
-            <div class="show-data-area" style="position: absolute;right: 80px;top: 490px;">
+            <div class="show-data-area" style="right: 110px;top: 681px;">
               <div class="show-data-area-top">ID信息</div>
               <div class="show-data-area-content">
                 <el-input readonly size="small" v-model="nowABoxImitateId"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;right: 80px;top: 528px;">
+            <div class="show-data-area" style="right: 110px;top: 719px;">
               <div class="show-data-area-top">上货扫码信息</div>
               <div class="show-data-area-content">
                 <el-input v-model="loadScanCode" readonly size="small"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;right: 80px;top: 569px;">
+            <div class="show-data-area" style="right: 110px;top: 757px;">
               <div class="show-data-area-top">当前上货数量</div>
               <div class="show-data-area-content">
                 <el-input v-model="nowInNum" readonly size="small"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;left: 178px;top: 475px;">
-              <div class="show-data-area-top">ID信息</div>
-              <div class="show-data-area-content">
+            <div class="show-data-area" style="left: -18px;top: 543px;width: 150px;height: 52px;">
+              <div class="show-data-area-top" style="width: 100%;height: 26px;">ID信息</div>
+              <div class="show-data-area-content" style="width: 100%;height: 26px;">
                 <el-input readonly size="small" v-model="nowEBoxImitateId"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;left: 178px;top: 513px;">
-              <div class="show-data-area-top">下货扫码信息</div>
-              <div class="show-data-area-content">
+            <div class="show-data-area" style="left: -18px;top: 595px;width: 150px;height: 52px;">
+              <div class="show-data-area-top" style="width: 100%;height: 26px;">下货扫码信息</div>
+              <div class="show-data-area-content" style="width: 100%;height: 26px;">
                 <el-input v-model="labyrinthScanCode" readonly size="small"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;left: 194px;top: 560px;">
-              <div class="show-data-area-top">当前下货数量</div>
-              <div class="show-data-area-content">
+            <div class="show-data-area" style="left: -2px;top: 218px;width: 150px;height: 52px;">
+              <div class="show-data-area-top" style="width: 100%;height: 26px;">当前下货数量</div>
+              <div class="show-data-area-content" style="width: 100%;height: 26px;">
                 <el-input v-model="nowOutNum" readonly size="small"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;left: 436px;top: 185px;width: 150px;height: 58px;">
+            <div class="show-data-area" style="left: 413px;top: 118px;width: 150px;height: 52px;">
               <div class="show-data-area-top" style="width: 100%;height: 26px;">束下当前货物ID</div>
               <div class="show-data-area-content" style="width: 100%;height: 26px;">
                 <el-input v-model="nowShuXiaid" readonly size="small"></el-input>
               </div>
             </div>
-            <div class="show-data-area" style="position: absolute;left: -35px;top: 428px;width: 150px;height: 58px;">
+            <div class="show-data-area" style="left: 103px;top: 702px;width: 150px;height: 52px;">
               <div class="show-data-area-top" style="width: 100%;height: 26px;">当前剔除数量</div>
               <div class="show-data-area-content" style="width: 100%;height: 26px;">
                 <el-input v-model="nowTiChuNum" readonly size="small"></el-input>
@@ -252,14 +252,30 @@
             <div v-show="false" :class="['dianji', dianJiStatusArr[9] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 264px;">114#电机</div>
             <div v-show="false" :class="['dianji', dianJiStatusArr[8] == '1' ? 'dianji-active' : '']" style="top: 690px;right: 367px;">115#电机</div>
             <!-- 队列信息 -->
-            <div class="box-num-tip" style="top: 526px;right: 17px;" @click="showChuanSong('AB')">{{ arrAB.length }}</div>
-            <div class="box-num-tip" style="top: 259px;right: 269px;" @click="showChuanSong('BC')">{{ arrBC.length }}</div>
-            <div class="box-num-tip" style="top: 74px;right: 323px;" @click="showChuanSong('CD')">{{ arrCD.length }}</div>
-            <div class="box-num-tip" style="top: 259px;left: 428px;" @click="showChuanSong('DE')">{{ arrDE.length }}</div>
-            <div class="box-num-tip" style="top: 534px;left: 166px;" @click="showChuanSong('EI')">{{ arrEI.length }}</div>
-            <div class="box-num-tip" style="top: 479px;right: 415px;" @click="showChuanSong('GH')">{{ arrGH.length }}</div>
-            <div class="box-num-tip" style="top: 599px;right: 326px;" @click="showChuanSong('JK')">{{ arrJK.length }}</div>
-            <div class="box-num-tip" style="top: 372px;left: 20px;" @click="showChuanSong('F')">{{ arrF.length }}</div>
+            <el-tooltip class="item" effect="dark" content="A-B货物队列" placement="left" :value="abTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 526px;right: 17px;" @click="showChuanSong('AB')" @mouseover="showAllImages('arr-ab')" @mouseout="hideAllImages('arr-ab')">{{ arrAB.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="B-C货物队列" placement="right" :value="bcTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 259px;right: 269px;" @click="showChuanSong('BC')" @mouseover="showAllImages('arr-bc')" @mouseout="hideAllImages('arr-bc')">{{ arrBC.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="C-D货物队列" placement="top" :value="cdTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 74px;right: 323px;" @click="showChuanSong('CD')" @mouseover="showAllImages('arr-cd')" @mouseout="hideAllImages('arr-cd')">{{ arrCD.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="D-E货物队列" placement="left" :value="deTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 259px;left: 428px;" @click="showChuanSong('DE')" @mouseover="showAllImages('arr-de')" @mouseout="hideAllImages('arr-de')">{{ arrDE.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="E-I货物队列" placement="right" :value="eiTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 534px;left: 166px;" @click="showChuanSong('EI')" @mouseover="showAllImages('arr-ei')" @mouseout="hideAllImages('arr-ei')">{{ arrEI.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="G-H货物队列" placement="bottom" :value="ghTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 479px;right: 415px;" @click="showChuanSong('GH')" @mouseover="showAllImages('arr-gh')" @mouseout="hideAllImages('arr-gh')">{{ arrGH.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="J-K货物队列" placement="bottom" :value="jkTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 599px;right: 326px;" @click="showChuanSong('JK')" @mouseover="showAllImages('arr-jk')" @mouseout="hideAllImages('arr-jk')">{{ arrJK.length }}</div>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="F货物队列" placement="left" :value="fTipShow" :manual="true">
+              <div class="box-num-tip" style="top: 372px;left: 20px;" @click="showChuanSong('F')" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')">{{ arrF.length }}</div>
+            </el-tooltip>
             <!-- 预警 -->
             <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: 41px;top: 663px;"/>
             <img src="./img/baojing.png" class="warning-img" v-show="baojingShow" style="top: 717px;left: 352px;"/>
@@ -471,7 +487,15 @@ export default {
       judgeSpeedInterval: null, // 工艺对比添加 束下实际速度与设定速度对比，不合格报警 DBW4 加速器允许货物进入辐照区
       shuxiaSpeedProportion: 1, // 束下前输送速度比
       logNotReadNumber: 0, // 日志未读数量
-      errorLogNotReadNumber: 0 // 错误日志未读数量
+      errorLogNotReadNumber: 0, // 错误日志未读数量
+      abTipShow: false,
+      bcTipShow: false,
+      cdTipShow: false,
+      deTipShow: false,
+      eiTipShow: false,
+      ghTipShow: false,
+      jkTipShow: false,
+      fTipShow: false
     };
   },
   watch: {
@@ -1496,11 +1520,67 @@ export default {
       for (var i = 0; i < images.length; i++) {
         images[i].style.opacity = '1'; // 显示所有图片
       }
+      switch (className) {
+        case 'arr-ab':
+          this.abTipShow = true;
+          break;
+        case 'arr-bc':
+          this.bcTipShow = true;
+          break;
+        case 'arr-cd':
+          this.cdTipShow = true;
+          break;
+        case 'arr-de':
+          this.deTipShow = true;
+          break;
+        case 'arr-ei':
+          this.eiTipShow = true;
+          break;
+        case 'arr-gh':
+          this.ghTipShow = true;
+          break;
+        case 'arr-jk':
+          this.jkTipShow = true;
+          break;
+        case 'arr-f':
+          this.fTipShow = true;
+          break;
+        default:
+          break;
+      }
     },
     hideAllImages(className){
       var images = document.getElementsByClassName(className);
       for (var i = 0; i < images.length; i++) {
         images[i].style.opacity = '0'; // 隐藏所有图片
+      }
+      switch (className) {
+        case 'arr-ab':
+          this.abTipShow = false;
+          break;
+        case 'arr-bc':
+          this.bcTipShow = false;
+          break;
+        case 'arr-cd':
+          this.cdTipShow = false;
+          break;
+        case 'arr-de':
+          this.deTipShow = false;
+          break;
+        case 'arr-ei':
+          this.eiTipShow = false;
+          break;
+        case 'arr-gh':
+          this.ghTipShow = false;
+          break;
+        case 'arr-jk':
+          this.jkTipShow = false;
+          break;
+        case 'arr-f':
+          this.fTipShow = false;
+          break;
+        default:
+          break;
       }
     }
   },
@@ -1635,24 +1715,24 @@ export default {
     width:45px;
     height:45px;
     position: absolute;
-    right: 372px;
-    top: 10px;
+    right: 317px;
+    top: -28px;
   }
   .fusheguang {
     width: 106px;
-    height: 100px;
+    height: 80px;
     position: absolute;
-    top: 56px;
-    right: 342px;
+    top: 18px;
+    right: 285px;
   }
   .chuansongpadding {
     box-sizing: border-box;
     .show-data-area {
       width:250px;
-      height: 32px;
-      display: none;
+      height: 26px;
+      position: absolute;
       &-top {
-        height: 32px;
+        height: 26px;
         width: 100px;
         float: left;
         display:flex;
@@ -1663,7 +1743,7 @@ export default {
         color: #000000;
       }
       &-content {
-        height: 32px;
+        height: 26px;
         width: 150px;
         float: left;
         ::v-deep .el-input--small .el-input__inner {
@@ -1671,6 +1751,9 @@ export default {
           font-size: 15px;
           font-weight: 600;
           color: #000000;
+          height: 26px;
+          line-height: 26px;
+          background-color: #e5e5e5;
         }
       }
     }
@@ -1824,8 +1907,8 @@ export default {
     }
   }
   &-right{
-    // width: calc(100% - 820px);
-    width: 100%;
+    width: calc(100% - 820px);
+    // width: 100%;
     height: 100%;
     float: left;
     padding: 15px 15px 15px 0px;
@@ -1838,7 +1921,7 @@ export default {
       background: rgba(246, 247, 251, 0.56);
       box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(88px);
-      // background: linear-gradient(to right, rgba(83, 188, 206, 0.7), rgba(97, 168, 160, 0.8));
+      background: linear-gradient(to right, rgba(83, 188, 206, 0.7), rgba(97, 168, 160, 0.8));
       .guangdian {
         width: 68px;
         height: 50px;
