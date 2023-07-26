@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic">
     <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 15px;top: 70px;" @click="closeDynamicGraphShow"></el-button>
-    <div class="dynamic-left">
+    <div class="dynamic-left" v-show="false">
       <div class="dynamic-left-top">
         <div>
           <div class="card-title">实时数据监控</div>
@@ -253,13 +253,13 @@
             <div v-show="false" :class="['dianji', dianJiStatusArr[8] == '1' ? 'dianji-active' : '']" style="top: 690px;right: 367px;">115#电机</div>
             <!-- 队列信息 -->
             <div class="box-num-tip" style="top: 526px;right: 17px;" @click="showChuanSong('AB')">{{ arrAB.length }}</div>
-            <div class="box-num-tip" style="top: 86px;right: 118px;" @click="showChuanSong('BC')">{{ arrBC.length }}</div>
-            <div class="box-num-tip" style="top: 320px;right: 536px;" @click="showChuanSong('CD')">{{ arrCD.length }}</div>
-            <div class="box-num-tip" style="top: 445px;left: 240px;" @click="showChuanSong('DE')">{{ arrDE.length }}</div>
-            <div class="box-num-tip" style="top: 445px;left: 240px;" @click="showChuanSong('EI')">{{ arrEI.length }}</div>
-            <div class="box-num-tip" style="top: 689px;right: 542px;" @click="showChuanSong('GH')">{{ arrGH.length }}</div>
-            <div class="box-num-tip" style="top: 689px;right: 542px;" @click="showChuanSong('JK')">{{ arrJK.length }}</div>
-            <div class="box-num-tip" style="top: 395px;left: -9px;" @click="showChuanSong('F')">{{ arrF.length }}</div>
+            <div class="box-num-tip" style="top: 259px;right: 269px;" @click="showChuanSong('BC')">{{ arrBC.length }}</div>
+            <div class="box-num-tip" style="top: 74px;right: 323px;" @click="showChuanSong('CD')">{{ arrCD.length }}</div>
+            <div class="box-num-tip" style="top: 259px;left: 428px;" @click="showChuanSong('DE')">{{ arrDE.length }}</div>
+            <div class="box-num-tip" style="top: 534px;left: 166px;" @click="showChuanSong('EI')">{{ arrEI.length }}</div>
+            <div class="box-num-tip" style="top: 479px;right: 415px;" @click="showChuanSong('GH')">{{ arrGH.length }}</div>
+            <div class="box-num-tip" style="top: 599px;right: 326px;" @click="showChuanSong('JK')">{{ arrJK.length }}</div>
+            <div class="box-num-tip" style="top: 372px;left: 20px;" @click="showChuanSong('F')">{{ arrF.length }}</div>
             <!-- 预警 -->
             <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: 41px;top: 663px;"/>
             <img src="./img/baojing.png" class="warning-img" v-show="baojingShow" style="top: 717px;left: 352px;"/>
@@ -1055,7 +1055,7 @@ export default {
         case 'C':
           if(this.pointC === '1') {
             // 如果是下一批第一个箱子经过E，则取消下货预警和报警
-            if(this.arrDE[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+            if(this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
               this.yujingShow = false;
               this.baojingShow = false;
             }
@@ -1824,8 +1824,8 @@ export default {
     }
   }
   &-right{
-    width: calc(100% - 820px);
-    // width: 100%;
+    // width: calc(100% - 820px);
+    width: 100%;
     height: 100%;
     float: left;
     padding: 15px 15px 15px 0px;
@@ -1838,7 +1838,7 @@ export default {
       background: rgba(246, 247, 251, 0.56);
       box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(88px);
-      background: linear-gradient(to right, rgba(83, 188, 206, 0.7), rgba(97, 168, 160, 0.8));
+      // background: linear-gradient(to right, rgba(83, 188, 206, 0.7), rgba(97, 168, 160, 0.8));
       .guangdian {
         width: 68px;
         height: 50px;
