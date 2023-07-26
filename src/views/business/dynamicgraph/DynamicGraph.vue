@@ -1,6 +1,6 @@
 <template>
   <div class="dynamic">
-    <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 35px;top: 70px;" @click="closeDynamicGraphShow"></el-button>
+    <el-button type="danger" icon="el-icon-close" style="position: absolute;z-index: 999;right: 15px;top: 70px;" @click="closeDynamicGraphShow"></el-button>
     <div class="dynamic-left">
       <div class="dynamic-left-top">
         <div>
@@ -252,12 +252,14 @@
             <div v-show="false" :class="['dianji', dianJiStatusArr[9] == '1' ? 'dianji-active' : '']" style="top: 596px;right: 264px;">114#电机</div>
             <div v-show="false" :class="['dianji', dianJiStatusArr[8] == '1' ? 'dianji-active' : '']" style="top: 690px;right: 367px;">115#电机</div>
             <!-- 队列信息 -->
-            <!-- <el-link v-show="false" type="danger" style="position: absolute;top: 326px;right: 109px;" @click="showChuanSong('AB')">{{ '101-103区域货物缓存队列 (' + arrAB.length + ')' }}</el-link>
-            <el-link v-show="false" type="danger" style="position: absolute;top: 86px;right: 118px;" @click="showChuanSong('BC')">{{ '104-106区域货物缓存队列 (' + arrBC.length + ')' }}</el-link>
-            <el-link v-show="false" type="danger" style="position: absolute;top: 320px;right: 536px;" @click="showChuanSong('CD')">{{ '107-109区域货物缓存队列 (' + arrCD.length + ')' }}</el-link>
-            <el-link v-show="false" type="danger" style="position: absolute;top: 445px;left: 240px;" @click="showChuanSong('DG')">{{ '110-111区域货物缓存队列 (' + arrDG.length + ')' }}</el-link>
-            <el-link v-show="false" type="danger" style="position: absolute;top: 395px;left: -9px;" @click="showChuanSong('F')">{{ '剔除货物缓存队列 (' + arrF.length + ')' }}</el-link>
-            <el-link v-show="false" type="danger" style="position: absolute;top: 689px;right: 542px;" @click="showChuanSong('GH')">{{ '下货区缓存队列 (' + arrGH.length + ')' }}</el-link> -->
+            <div class="box-num-tip" style="top: 526px;right: 17px;" @click="showChuanSong('AB')">{{ arrAB.length }}</div>
+            <div class="box-num-tip" style="top: 86px;right: 118px;" @click="showChuanSong('BC')">{{ arrBC.length }}</div>
+            <div class="box-num-tip" style="top: 320px;right: 536px;" @click="showChuanSong('CD')">{{ arrCD.length }}</div>
+            <div class="box-num-tip" style="top: 445px;left: 240px;" @click="showChuanSong('DE')">{{ arrDE.length }}</div>
+            <div class="box-num-tip" style="top: 445px;left: 240px;" @click="showChuanSong('EI')">{{ arrEI.length }}</div>
+            <div class="box-num-tip" style="top: 689px;right: 542px;" @click="showChuanSong('GH')">{{ arrGH.length }}</div>
+            <div class="box-num-tip" style="top: 689px;right: 542px;" @click="showChuanSong('JK')">{{ arrJK.length }}</div>
+            <div class="box-num-tip" style="top: 395px;left: -9px;" @click="showChuanSong('F')">{{ arrF.length }}</div>
             <!-- 预警 -->
             <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: 41px;top: 663px;"/>
             <img src="./img/baojing.png" class="warning-img" v-show="baojingShow" style="top: 717px;left: 352px;"/>
@@ -378,7 +380,6 @@ export default {
       arrGH: [],
       arrJK: [],
       arrF: [], // 下货队列
-      tempArrF: [], // 经过E点，下货箱子缓存
       // 每个点位的值，根据收到PLC指令为准，值为1或0
       pointA: '0',
       pointB: '0',
@@ -480,42 +481,27 @@ export default {
           // 碰到A，清零读码信息
           this.loadScanCode = ''
           this.enteringPonitA = true
-          if(this.nowNumberTurns == 1) {
-            // 第一圈，仍然是新增，按照要求生成模拟id策略
-            const boxImitateId = await this.getCurrentTimeSort();
-            this.nowABoxImitateId = boxImitateId;
-            // 代表货物进入光电A，生成模拟id绑定,如果有扫码数据则
-            this.arrAB.push({orderId: this.orderMainDy.orderId, orderNo: this.orderMainDy.orderNo, boxImitateId: boxImitateId, numberTurns: 1, loadScanCode: this.loadScanCode, turnsInfoList:[{numberTurns: 1, passATime: moment().format('YYYY-MM-DD HH:mm:ss')}]});
-            // 判断当前箱子是不是当前批次消毒的第一个
-            if(this.ifNextPassABoxIsFirst) {
-              this.judgeBanLoadBoxImitateId = boxImitateId;
-              this.ifNextPassABoxIsFirst = false; // 设置为false,下一个经过A点的箱子绝不是此批次第一个箱子了
-            }
-            // 新增的箱子，最后一个经过A点的模拟Id
-            this.lastNewBoxPassABoxImitateId = boxImitateId;
-            // 新上货物时，报警和预警先关闭
-            this.yujingShow = false;
-            this.baojingShow = false;
-            // 上货数量+1
-            this.nowInNum++;
-            // 模拟id数+1
-            this.beginCountNum++;
-            // 生成日志
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + boxImitateId + '进入A点', 'log');
-          } else {
-            // 把GH队列最开始箱子加入AB对接，并修改圈数
-            if(this.arrGH[this.nowOutNum] != undefined) {
-              this.arrAB.push(this.arrGH[this.nowOutNum]);
-              this.arrGH.splice(this.nowOutNum,1)
-              this.arrAB[this.arrAB.length - 1].numberTurns = this.arrAB[this.arrAB.length - 1].numberTurns + 1;
-              const nowTurns = this.arrAB[this.arrAB.length - 1].numberTurns;
-              this.arrAB[this.arrAB.length - 1].turnsInfoList.push({numberTurns: nowTurns, passATime: moment().format('YYYY-MM-DD HH:mm:ss')});
-              // 显示箱子模拟id
-              this.nowABoxImitateId = this.arrAB[this.arrAB.length - 1].boxImitateId;
-              // 生成日志
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.nowABoxImitateId + '进入A点', 'log');
-            }
+          // 新增，按照要求生成模拟id策略
+          const boxImitateId = await this.getCurrentTimeSort();
+          this.nowABoxImitateId = boxImitateId;
+          // 代表货物进入光电A，生成模拟id绑定,如果有扫码数据则
+          this.arrAB.push({orderId: this.orderMainDy.orderId, orderNo: this.orderMainDy.orderNo, boxImitateId: boxImitateId, numberTurns: 1, loadScanCode: this.loadScanCode, turnsInfoList:[{numberTurns: 1, passATime: moment().format('YYYY-MM-DD HH:mm:ss')}]});
+          // 判断当前箱子是不是当前批次消毒的第一个
+          if(this.ifNextPassABoxIsFirst) {
+            this.judgeBanLoadBoxImitateId = boxImitateId;
+            this.ifNextPassABoxIsFirst = false; // 设置为false,下一个经过A点的箱子绝不是此批次第一个箱子了
           }
+          // 新增的箱子，最后一个经过A点的模拟Id
+          this.lastNewBoxPassABoxImitateId = boxImitateId;
+          // 新上货物时，报警和预警先关闭
+          this.yujingShow = false;
+          this.baojingShow = false;
+          // 上货数量+1
+          this.nowInNum++;
+          // 模拟id数+1
+          this.beginCountNum++;
+          // 生成日志
+          this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + boxImitateId + '进入A点', 'log');
         } else if(this.enteringPonitA && newVal === '0' && oldVal === '1') { // 货物走出A点
           this.enteringPonitA = false
           if(this.arrAB[this.arrAB.length - 1] != undefined) {
@@ -1040,35 +1026,20 @@ export default {
       // 正确修改方法：直接在watch方法判断值，一变化接着调用这个方法，并且传固参，不再判断point*变量
       switch (point) {
         case 'A':
-        if(this.nowNumberTurns == 1) {
-            // 走出A 读码
-            this.loadScanCode = this.loadScanCodeTemp.replace(/\s/g,'');
-            this.arrAB[this.arrAB.length - 1].loadScanCode = this.loadScanCode;
-          } else {
-            // 走出A 读码
-            this.loadScanCode = this.loadScanCodeTemp.replace(/\s/g,'');
-            // 判断当前箱子的二维码和扫出来的码是否一致
-            if(this.arrAB[this.arrAB.length - 1].loadScanCode == '' || this.arrAB[this.arrAB.length - 1].loadScanCode == null || this.arrAB[this.arrAB.length - 1].loadScanCode == undefined) {
-              this.arrAB[this.arrAB.length - 1].loadScanCode = this.loadScanCode;
-            } else {
-              if(this.loadScanCode != '' && this.loadScanCode != this.arrAB[this.arrAB.length - 1].loadScanCode) {
-                ipcRenderer.send('writeValuesToPLC', 'DBW34', 1);
-              }
-            }
-            this.arrAB[this.arrAB.length - 1].loadScanCode;
-          }
-          // 判断是否满足可上货条件，就是当前这批消毒的箱子，最后一个满足圈数并且离开A，即可上货
-          if(this.arrAB[this.arrAB.length - 1].boxImitateId == this.lastNewBoxPassABoxImitateId) {
-            if(this.arrAB[this.arrAB.length - 1].numberTurns == this.orderMainDy.numberTurns) {
-              // 开始上新货，当前箱子圈数变成1
-              this.nowNumberTurns = 1;
-              this.ifNextPassABoxIsFirst = true;
-              this.banLoadStatus = false; // 隐藏禁止上货图标
-              this.judgeBanLoadBoxImitateId = ''
-              // 给PLC发送允许上货命令
-              ipcRenderer.send('writeValuesToPLC', 'DBW36', 1);
-            }
-          }
+          this.loadScanCode = this.loadScanCodeTemp.replace(/\s/g,'');
+          this.arrAB[this.arrAB.length - 1].loadScanCode = this.loadScanCode;
+          // TODO 判断是否满足可上货条件，就是当前这批消毒的箱子，最后一个满足圈数并且离开A，即可上货
+          // if(this.arrAB[this.arrAB.length - 1].boxImitateId == this.lastNewBoxPassABoxImitateId) {
+          //   if(this.arrAB[this.arrAB.length - 1].numberTurns == this.orderMainDy.numberTurns) {
+          //     // 开始上新货，当前箱子圈数变成1
+          //     this.nowNumberTurns = 1;
+          //     this.ifNextPassABoxIsFirst = true;
+          //     this.banLoadStatus = false; // 隐藏禁止上货图标
+          //     this.judgeBanLoadBoxImitateId = ''
+          //     // 给PLC发送允许上货命令
+          //     ipcRenderer.send('writeValuesToPLC', 'DBW36', 1);
+          //   }
+          // }
           this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrAB[this.arrAB.length - 1].boxImitateId + '离开A点，扫码信息：' + this.loadScanCode, 'log');
           break;
         case 'B':
@@ -1187,75 +1158,18 @@ export default {
               this.arrtEI.splice(this.nowTiChuNum,1);
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
             }
-            // todo 这里留着，一会H和K点用得到
-            // this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '经过G点，扫码信息：' + this.arrDG[0].loadScanCode + '。当前 ' + this.arrDG[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrDG[0].numberTurns)) + ' 圈', 'log');
-            // // 把DG队列第一个货物出列，进入GH
-            // this.arrGH.push(this.arrDG[0]);
-            // this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            // // 删除DG队列第一个
-            // this.arrDG.splice(0,1);
-            // console.log(this.arrGH)
           }
           break;
         case 'H':
           if(this.pointH === '1') {
             if(this.arrGH.length > 0) {
-              // 将arrGH队列第一个进入AB队列，箱子圈数加1
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[0].boxImitateId + '经过H点，扫码信息：' + this.arrGH[0].loadScanCode + '。当前 ' + this.arrGH[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrGH[0].numberTurns)) + ' 圈', 'log');
               this.arrAB.push(this.arrGH[0]);
-              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrtEI.splice(this.nowTiChuNum,1);
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
+              // 将arrGH队列第一个进入AB队列，箱子圈数加1
+              this.arrAB[this.arrAB.length - 1].numberTurns = this.arrAB[this.arrAB.length - 1].numberTurns + 1;
+              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrGH.splice(0, 1);
             }
-            // let indexHBox = 0;
-            // if(this.lastRouteHPoint != '') {
-            //   // 查找arrGH数组，lastRouteHPoint的元素，那么下一个必定是此时经过E点的元素
-            //   const indexLast = this.arrGH.findIndex(item => {
-            //     return item.boxImitateId === this.lastRouteHPoint
-            //   })
-            //   if(indexLast != -1) {
-            //     // 找到了，lastRouteHPoint的下一个元素必定是经过E点的元素
-            //     // 如果找到的元素是this.arrGH的最后一个元素，则下一个元素就是arrGH的第一个元素，即 indexHBox = 0
-            //     if(indexLast != (this.arrGH.length - 1)) {
-            //       indexHBox = indexLast + 1;
-            //     }
-            //   }
-            // }
-            // this.lastRouteHPoint = this.arrGH[indexHBox].boxImitateId;
-            // // 不是箱子最后一圈，更新进入H点时间
-            // if(this.arrGH[indexHBox].numberTurns != this.orderMainDy.numberTurns) {
-            //   console.log(this.arrGH[indexHBox].numberTurns)
-            //   console.log(this.orderMainDy.numberTurns)
-            //   this.arrGH[indexHBox].turnsInfoList[this.arrGH[indexHBox].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            // }
-            // // 判断当前箱子的圈数，和全局圈数
-            // if(this.arrGH[indexHBox].numberTurns >= this.nowNumberTurns) {
-            //   // 更新全局圈数 和 报警信号
-            //   if (this.arrGH[indexHBox].numberTurns >= this.orderMainDy.numberTurns) {
-            //     this.baojingShow = true;
-            //     const param = {
-            //       boxMainDTOList: [this.arrGH[indexHBox]],
-            //       finishOrder: false
-            //     }
-            //     // 更新箱报告的H点的时间
-            //     await HttpUtil.post('/box/save', param).then((res)=> {
-            //       if(res.data == 1) {
-            //         this.$message.success('货物：' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！')
-            //         this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，已更新箱报告！', 'log');
-            //       } else {
-            //         this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！')
-            //         this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！', 'log');
-            //       }
-            //     }).catch((err)=> {
-            //       this.$message.error('货物：' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err)
-            //       this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[indexHBox].boxImitateId + '，更新箱报告失败！' + err, 'log');
-            //     });
-            //   } else {
-            //     // 有货物的圈数和全局圈数一致时，则全局圈数加1
-            //     if(this.arrGH[indexHBox].boxImitateId == this.judgeBanLoadBoxImitateId) {
-            //       this.nowNumberTurns++;
-            //     }
-            //   }
-            // }
           }
           break;
         case 'I':
@@ -1297,6 +1211,18 @@ export default {
               this.arrJK[this.arrJK.length - 1].turnsInfoList[this.arrJK[this.arrJK.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
               this.arrtEI.splice(this.nowTiChuNum,1);
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
+            }
+          }
+        break;
+        case 'K':
+          if(this.pointK === '1') {
+            if(this.arrJK.length > 0) {
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[0].boxImitateId + '经过K点，扫码信息：' + this.arrJK[0].loadScanCode + '。当前 ' + this.arrJK[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrJK[0].numberTurns)) + ' 圈', 'log');
+              this.arrAB.push(this.arrJK[0]);
+              // 将arrGH队列第一个进入AB队列，箱子圈数加1
+              this.arrAB[this.arrAB.length - 1].numberTurns = this.arrAB[this.arrAB.length - 1].numberTurns + 1;
+              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              this.arrGH.splice(0, 1);
             }
           }
         break;
@@ -2006,6 +1932,21 @@ export default {
       }
       .caozuoButton {
         position: absolute;
+      }
+      .box-num-tip {
+        width: 1.5em;
+        height: 1.5em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: white;
+        color: #000000;
+        font-weight: 700;
+        cursor: pointer;
+        position: absolute;
+      }
+      .box-num-tip:hover {
+        box-shadow: 0 0 5px 2px #70bcff;
       }
     }
   }

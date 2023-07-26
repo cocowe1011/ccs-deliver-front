@@ -7,6 +7,7 @@ import 'element-ui/lib/theme-chalk/index.css'; //全局引入element的样式
 import axios from 'axios';
 import VueCookies from 'vue-cookies'
 import './assets/iconfont.css'
+import './assets/css/el-table.less';
 Vue.use(VueCookies)
 
 Vue.config.productionTip = false;
