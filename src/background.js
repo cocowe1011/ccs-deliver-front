@@ -20,8 +20,7 @@ app.on('window-all-closed', () => {
 });
 
 global.sharedObject = {
-  cookieStr: '',
-  deptInfo: {}
+  userInfo: {}
 }
 let mainWindow = null;
 app.on('ready', () => {
@@ -58,12 +57,7 @@ app.on('ready', () => {
       mainWindow.unmaximize()
       mainWindow.setSize(1100, 600);
       mainWindow.center();
-      mainWindow.webContents.executeJavaScript(`
-        (function(){ 
-          window.sessionStorage.removeItem('userInfo')
-        })()
-      `)
-      // mainWindow.setResizable(false)
+      global.sharedObject.userInfo = {}
     }
   })
   // 定义自定义事件
@@ -113,17 +107,17 @@ app.on('ready', () => {
       }
     })
   });
-  // let revert = false;
-  // setInterval(() => {
-  //   if(mainWindow) {
-  //     if(revert) {
-  //       mainWindow.webContents.send('receivedMsg', {DBW60:0, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
-  //     } else {
-  //       mainWindow.webContents.send('receivedMsg', {DBW60:1, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
-  //     }
-  //     revert = !revert;
-  //   }
-  // }, 100);
+  let revert = false;
+  setInterval(() => {
+    if(mainWindow) {
+      if(revert) {
+        mainWindow.webContents.send('receivedMsg', {DBW60:0, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
+      } else {
+        mainWindow.webContents.send('receivedMsg', {DBW60:1, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
+      }
+      revert = !revert;
+    }
+  }, 100);
 
   setAppTray();
   if (process.env.NODE_ENV === 'production') {
@@ -191,14 +185,6 @@ app.on('ready', () => {
   // 定义自定义事件
   ipcMain.on('full_screen', function() {
     mainWindow.isFullScreen() ? mainWindow.setFullScreen(false) : mainWindow.setFullScreen(true);
-  })
-  // setUserInfo
-  ipcMain.on('setUserInfo', (event, arg) => {
-    mainWindow.webContents.executeJavaScript(`
-      (function(){ 
-        window.sessionStorage.setItem("userInfo", '${JSON.stringify(arg)}')
-      })()
-    `)
   })
   // 程序启动时判断是否存在报表、日志等本地文件夹，没有就创建
   createFile('batchReport.grf');

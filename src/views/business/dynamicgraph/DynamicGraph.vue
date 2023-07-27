@@ -222,16 +222,16 @@
               <div class='star' v-show="pointH == '1'"></div>
               <div class="pointText">H</div>
             </div>
-            <div class="guangdian" style="right: 659px;top: 638px;">
-              <div class='star' v-show="false"></div>
+            <div class="guangdian" style="right: 659px;top: 638px;" @click="analogOptoelectronics('I')">
+              <div class='star' v-show="pointI == '1'"></div>
               <div class="pointText">I</div>
             </div>
-            <div class="guangdian" style="right: 526px;top: 638px;">
-              <div class='star' v-show="false"></div>
+            <div class="guangdian" style="right: 526px;top: 638px;" @click="analogOptoelectronics('J')">
+              <div class='star' v-show="pointJ == '1'"></div>
               <div class="pointText">J</div>
             </div>
-            <div class="guangdian" style="right: 60px;top: 545px;">
-              <div class='star' v-show="false"></div>
+            <div class="guangdian" style="right: 60px;top: 545px;" @click="analogOptoelectronics('K')">
+              <div class='star' v-show="pointK == '1'"></div>
               <div class="pointText">K</div>
             </div>
             <!-- 电机状态 -->
@@ -375,6 +375,7 @@ import { EventBus } from '@/utils/EventBus'
 import { Debugger, ipcRenderer } from 'electron'
 import HttpUtil from '@/utils/HttpUtil'
 import moment from 'moment';
+const remote = require('electron').remote
 export default {
   name: "DynamicGraph",
   components: {},
@@ -437,6 +438,8 @@ export default {
       enteringPonitB: false,
       // 是否正在进入E点
       enteringPonitE: false,
+      // 是否正在进入C点
+      enteringPonitC: false,
       // 上料固定扫码
       loadScanCode: '',
       // 上料固定扫码(实时读PLC的码)
@@ -542,17 +545,7 @@ export default {
         // enteringPonitB
         if(!this.enteringPonitB && newVal === '1' && oldVal === '0') { //货物开始进入B点
           this.enteringPonitB = true
-          if(this.arrAB.length > 0) {
-            this.$message.success('开始进入B点')
-            // 进入B的下降沿，获取AB队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
-            const boxImitateId = this.arrAB[0].boxImitateId;
-            // 计算时间
-            setTimeout(() => {
-              this.getUndercutProcess(boxImitateId);
-            }, this.calculateMilliseconds((Number(this.l11)/(Number(this.lightBeamRealTimeSpeed) * (this.shuxiaSpeedProportion/10))).toFixed(2),(Number(this.l2)/Number(this.lightBeamRealTimeSpeed)).toFixed(2)));
-          }
         } else if(this.enteringPonitB && newVal === '0' && oldVal === '1') { // 货物走出B点
-          this.$message.warning('货物走出B点')
           this.enteringPonitB = false
           if(this.arrAB.length > 0) {
             this.dealBoxLogic('B')
@@ -565,8 +558,27 @@ export default {
     },
     pointC: {
       handler(newVal, oldVal) {
-        if(this.arrBC.length > 0) {
+        // enteringPonitC
+        if(!this.enteringPonitC && newVal === '1' && oldVal === '0') { //货物开始进入B点
+          this.enteringPonitC = true
+          // TODO 这个时间判断变成C点了 一会把他安排上
+          if(this.arrBC.length > 0) {
+            this.$message.success('开始进入B点')
+            // 进入B的下降沿，获取AB队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
+            const boxImitateId = this.arrBC[0].boxImitateId;
+            // 计算时间
+            setTimeout(() => {
+              this.getUndercutProcess(boxImitateId);
+            }, 2000);
+          }
+        } else if(this.enteringPonitC && newVal === '0' && oldVal === '1') { // 货物走出B点
+          this.enteringPonitC = false
+          if(this.arrBC.length > 0) {
           this.dealBoxLogic('C')
+        }
+        } else {
+          // 先暂定报警吧，因为肯定不会出现这种情况，出现了视为异常，不做任何处理
+          alert('异常！程序走到一个不该走到的地方！')
         }
       }
     },
@@ -592,12 +604,13 @@ export default {
         } else if(this.enteringPonitE && newVal === '0' && oldVal === '1') { // 货物走出B点
           this.$message.warning('货物走出E点')
           this.enteringPonitE = false
-          if(this.arrDG.length > 0) {
+          if(this.arrDE.length > 0) {
             // 走出E点，读码
             this.labyrinthScanCode = this.labyrinthScanCodeTemp.replace(/\s/g,'');
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDG[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
             // 把箱子推入EI队列
-            this.arrEI.push(this.arrDG[0]);
+            this.arrEI.push(this.arrDE[0]);
+            this.arrDE[0].splice(0,1)
           }
         } else {
           // 先暂定报警吧，因为肯定不会出现这种情况，出现了视为异常，不做任何处理
@@ -607,42 +620,44 @@ export default {
     },
     pointF: {
       handler(newVal, oldVal) {
-        this.dealBoxLogic('F')
+        if(this.arrEI.length > this.nowTiChuNum) {
+          this.dealBoxLogic('F')
+        }
       }
     },
     pointG: {
       handler(newVal, oldVal) {
-        if(this.arrEI.length > 0) {
+        if(this.arrEI.length > this.nowTiChuNum) {
           this.dealBoxLogic('G')
         }
       }
     },
     pointH: {
       handler(newVal, oldVal) {
-        // if(this.arrGH.length > 0) {
-        //   this.dealBoxLogic('H')
-        // }  
+        if(this.arrGH.length > 0) {
+          this.dealBoxLogic('H')
+        }  
       }
     },
     pointI: {
       handler(newVal, oldVal) {
-        if(this.arrEI.length > 0) {
+        if(this.arrEI.length > this.nowTiChuNum) {
           this.dealBoxLogic('I')
         }  
       }
     },
     pointJ: {
       handler(newVal, oldVal) {
-        if(this.arrEI.length > 0) {
+        if(this.arrEI.length > this.nowTiChuNum) {
           this.dealBoxLogic('J')
         }  
       }
     },
     pointK: {
       handler(newVal, oldVal) {
-        // if(this.arrEI.length > 0) {
-        //   this.dealBoxLogic('K')
-        // }  
+        if(this.arrJK.length > 0) {
+          this.dealBoxLogic('K')
+        }  
       }
     },
     err1: {
@@ -757,11 +772,11 @@ export default {
     },
     qualified4Box(boxImitateIdVal, status) {
       //判断箱子在哪个队列 AB BC CD DG GH,status为true为合格，false为不合格
-      for (let index = 0; index < this.arrBC.length; index++) {
-        if(this.arrBC[index].boxImitateId == boxImitateIdVal) {
-          this.arrBC[index].qualified = status?'1':'0';
+      for (let index = 0; index < this.arrCD.length; index++) {
+        if(this.arrCD[index].boxImitateId == boxImitateIdVal) {
+          this.arrCD[index].qualified = status?'1':'0';
           // 给当前圈也赋值合格
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].qualified = status?'1':'0';
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].qualified = status?'1':'0';
           break;
         }
       }
@@ -851,19 +866,20 @@ export default {
       this.nowShuXiaid = boxImitateIdVal;
       // 获取当前加速器工艺，和系统设置工艺做比较
       HttpUtil.get('/box/getAccData').then((res)=> {
+        console.log(res)
         // 给当前箱子赋值acc读取值
-        const index = this.arrBC.findIndex(item => {
+        const index = this.arrCD.findIndex(item => {
           return item.boxImitateId === boxImitateIdVal
         })
         if(index != -1) {
           // 给箱子设置读取值
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].slRead = res.data.beam;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].glRead = res.data.power;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].skRead = res.data.scanW;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].smplRead = res.data.scanF;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].pfnRead = res.data.pfn;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].nlRead = res.data.energy;
-          this.arrBC[index].turnsInfoList[this.arrBC[index].numberTurns - 1].sxSpeedRead = res.data.speed;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].slRead = res.data.beam;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].glRead = res.data.power;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].skRead = res.data.scanW;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].smplRead = res.data.scanF;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].pfnRead = res.data.pfn;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].nlRead = res.data.energy;
+          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].sxSpeedRead = res.data.speed;
         }
         if(res.data&&JSON.stringify(this.orderMainDy) != '{}' && this.judgeAccData(res.data, boxImitateIdVal)) {
           this.$message({
@@ -889,7 +905,6 @@ export default {
       });
     },
     analogOptoelectronics(point) {
-      console.log(point)
       switch (point) {
         case 'A':
           this.pointA = this.pointA === '1' ? '0' : '1'
@@ -914,6 +929,15 @@ export default {
           break;
         case 'H':
           this.pointH = this.pointH === '1' ? '0' : '1'
+          break;
+        case 'I':
+          this.pointI = this.pointI === '1' ? '0' : '1'
+          break;
+        case 'J':
+          this.pointJ = this.pointJ === '1' ? '0' : '1'
+          break;
+        case 'K':
+          this.pointK = this.pointK === '1' ? '0' : '1'
           break;
         default:
           break;
@@ -1077,18 +1101,16 @@ export default {
           this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrBC[this.arrBC.length - 1].boxImitateId + '经过B点，扫码信息：' + this.arrBC[this.arrBC.length - 1].loadScanCode, 'log');
           break;
         case 'C':
-          if(this.pointC === '1') {
-            // 如果是下一批第一个箱子经过E，则取消下货预警和报警
-            if(this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
-              this.yujingShow = false;
-              this.baojingShow = false;
-            }
-            this.arrCD.push(this.arrBC[0]);
-            this.arrCD[this.arrCD.length - 1].turnsInfoList[this.arrCD[this.arrCD.length - 1].numberTurns - 1].passCTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            // 删除BC队列第一个
-            this.arrBC.splice(0,1);
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrCD[this.arrCD.length - 1].boxImitateId + '经过C点，扫码信息：' + this.arrCD[this.arrCD.length - 1].loadScanCode, 'log');
-          }
+          // TODO这里保持疑问 如果是下一批第一个箱子经过E，则取消下货预警和报警
+          // if(this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+          //   this.yujingShow = false;
+          //   this.baojingShow = false;
+          // }
+          this.arrCD.push(this.arrBC[0]);
+          this.arrCD[this.arrCD.length - 1].turnsInfoList[this.arrCD[this.arrCD.length - 1].numberTurns - 1].passCTime = moment().format('YYYY-MM-DD HH:mm:ss');
+          // 删除BC队列第一个
+          this.arrBC.splice(0,1);
+          this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrCD[this.arrCD.length - 1].boxImitateId + '经过C点，扫码信息：' + this.arrCD[this.arrCD.length - 1].loadScanCode, 'log');
           break;
         case 'D':
           if(this.pointD === '1') {
@@ -1146,11 +1168,11 @@ export default {
           // 下货，判断箱子是否有下货标识 nowTiChuNum当前剔除数量
           if(this.arrEI.length > this.nowTiChuNum) {
             // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
-            if(this.arrtEI[this.nowTiChuNum].xiahuoFlag) {
+            if(this.arrEI[this.nowTiChuNum].xiahuoFlag) {
               // 符合进入F队列
-              this.arrF.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrF.push(this.arrEI[this.nowTiChuNum]);
               this.arrF[this.arrF.length - 1].turnsInfoList[this.arrF[this.arrF.length - 1].numberTurns - 1].passFTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.arrEI.splice(this.nowTiChuNum,1);
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrF[this.arrF.length - 1].loadScanCode, 'log');
               // 生成箱报告
               this.nowOutNum++;
@@ -1177,9 +1199,9 @@ export default {
         case 'G':
           if(this.pointG === '1') {
             if(this.arrEI.length > this.nowTiChuNum) {
-              this.arrGH.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrGH.push(this.arrEI[this.nowTiChuNum]);
               this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.arrEI.splice(this.nowTiChuNum,1);
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
             }
           }
@@ -1202,27 +1224,27 @@ export default {
             // 剔除，判断箱子是否有剔除标识 nowTiChuNum当前剔除数量
             if(this.arrEI.length > this.nowTiChuNum) {
               // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
-              if(this.arrtEI[this.nowTiChuNum].tichuFlag) {
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '经过I点，扫码信息：' + this.arrtEI[this.nowTiChuNum].loadScanCode + '。被剔除！', 'log');
-                this.arrtEI[this.nowTiChuNum].turnsInfoList[this.arrtEI[this.nowTiChuNum].numberTurns - 1].passITime = moment().format('YYYY-MM-DD HH:mm:ss');
+              if(this.arrEI[this.nowTiChuNum].tichuFlag) {
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '经过I点，扫码信息：' + this.arrEI[this.nowTiChuNum].loadScanCode + '。被剔除！', 'log');
+                this.arrEI[this.nowTiChuNum].turnsInfoList[this.arrEI[this.nowTiChuNum].numberTurns - 1].passITime = moment().format('YYYY-MM-DD HH:mm:ss');
                 // 生成箱报告
                 this.nowTiChuNum++;
                 const param = {
-                  boxMainDTOList: [this.arrtEI[this.nowTiChuNum]],
+                  boxMainDTOList: [this.arrEI[this.nowTiChuNum]],
                   finishOrder: false
                 }
                 // 生成箱报告
                 await HttpUtil.post('/box/save', param).then((res)=> {
                   if(res.data == 1) {
-                    this.$message.success('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！')
-                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！', 'log');
+                    this.$message.success('货物：' + this.arrEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！', 'log');
                   } else {
-                    this.$message.error('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！')
-                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！', 'log');
+                    this.$message.error('货物：' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！', 'log');
                   }
                 }).catch((err)=> {
-                  this.$message.error('货物：' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err)
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrtEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err, 'log');
+                  this.$message.error('货物：' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err)
+                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err, 'log');
                 });
               }
             }
@@ -1231,9 +1253,9 @@ export default {
         case 'J':
           if(this.pointJ === '1') {
             if(this.arrEI.length > this.nowTiChuNum) {
-              this.arrJK.push(this.arrtEI[this.nowTiChuNum]);
+              this.arrJK.push(this.arrEI[this.nowTiChuNum]);
               this.arrJK[this.arrJK.length - 1].turnsInfoList[this.arrJK[this.arrJK.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrtEI.splice(this.nowTiChuNum,1);
+              this.arrEI.splice(this.nowTiChuNum,1);
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
             }
           }
@@ -1242,11 +1264,17 @@ export default {
           if(this.pointK === '1') {
             if(this.arrJK.length > 0) {
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[0].boxImitateId + '经过K点，扫码信息：' + this.arrJK[0].loadScanCode + '。当前 ' + this.arrJK[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrJK[0].numberTurns)) + ' 圈', 'log');
+              // 赋值当前圈经过K点的时间
+              this.arrJK[0].turnsInfoList[this.arrJK[0].numberTurns - 1].passKTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              // 将arrJK队列第一个进入AB队列，
               this.arrAB.push(this.arrJK[0]);
               // 将arrGH队列第一个进入AB队列，箱子圈数加1
               this.arrAB[this.arrAB.length - 1].numberTurns = this.arrAB[this.arrAB.length - 1].numberTurns + 1;
-              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrGH.splice(0, 1);
+              // 增加第二圈集合
+              const nowTurns = this.arrAB[this.arrAB.length - 1].numberTurns;
+              this.arrAB[this.arrAB.length - 1].turnsInfoList.push({numberTurns: nowTurns});
+              // 删除原集合
+              this.arrJK.splice(0, 1);
             }
           }
         break;
@@ -1484,13 +1512,13 @@ export default {
             // 验证姓名是否正确
             const param = {
               userPassword: value,
-              userCode: JSON.parse(window.sessionStorage.getItem('userInfo')).userCode
+              userCode: remote.getGlobal('sharedObject').userInfo.userCode
             }
             HttpUtil.post('/userInfo/verifyPassword', param).then((res)=> {
               if(res.data) {
                 this.$message.success('验证通过！');
                 this.clearAllData();
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 用户：' + JSON.parse(window.sessionStorage.getItem('userInfo')).userName + '进行了全线清空操作！', 'log');
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 用户：' + remote.getGlobal('sharedObject').userInfo.userName + '进行了全线清空操作！', 'log');
               } else {
                 this.$message.error('验证未通过！');
               }
