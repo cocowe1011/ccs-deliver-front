@@ -287,7 +287,7 @@
       </div>
     </div>
     <el-drawer
-      title="输送带xx"
+      title="快捷移动-拖动表格切换队列"
       :visible.sync="drawer"
       :modal-append-to-body="false"
       border
@@ -301,35 +301,32 @@
                   <th style="width:40px;">
                     <div>序号</div>
                   </th>
-                  <th style="width: 100px">
+                  <th style="width: 150px">
+                    <div>订单号</div>
+                  </th>
+                  <th style="width: 120px">
                     <div>箱编号</div>
                   </th>
                   <th style="width: 150px">
                     <div>一维/二维码信息</div>
                   </th>
-                  <th style="width: 80px">
+                  <th style="width: 130px">
                     <div>进入时间</div>
                   </th>
-                  <th style="width: 80px">
-                    <div>测试箱</div>
-                  </th>
-                  <th style="width: 80px">
+                  <th style="width: 60px">
                     <div>圈数</div>
                   </th>
-                  <th style="width: 80px">
+                  <th style="width: 60px">
                     <div>翻转</div>
                   </th>
-                  <th style="width: 80px">
+                  <th style="width: 60px">
                     <div>已完成</div>
                   </th>
-                  <th style="width: 80px">
+                  <th style="width: 60px">
                     <div>合格</div>
                   </th>
-                  <th style="width: 80px">
+                  <th style="width: 60px">
                     <div>状态</div>
-                  </th>
-                  <th>
-                    <div>POID</div>
                   </th>
                 </tr>
               </thead>
@@ -340,16 +337,23 @@
               <tbody>
                 <tr v-for="(item, index) in boxArr" class="body-col" :key="index" draggable="true" @dragstart="dragStart(index)">
                   <td style="width: 40px;">{{ index + 1 }}</td>
-                  <td style="width: 100px;">{{ item.boxImitateId }}</td>
-                  <th style="width: 150px">{{ item.loadScanCode }}</th>
-                  <th style="width: 80px"></th>
-                  <th style="width: 80px"></th>
-                  <th style="width: 80px">{{ item.numberTurns }}</th>
-                  <th style="width: 80px"></th>
-                  <th style="width: 80px"></th>
-                  <th style="width: 80px">{{ item.qualified === '1' ? '合格' : item.qualified === '0' ? '不合格' : '' }}</th>
-                  <th style="width: 80px"></th>
-                  <th></th>
+                  <td style="width: 150px">{{ orderMainDy.orderNo }}</td>
+                  <td style="width: 120px;">{{ item.boxImitateId }}</td>
+                  <td style="width: 150px">{{ item.loadScanCode }}</td>
+                  <td style="width: 130px">{{ item.turnsInfoList[0].passATime }}</td>
+                  <td style="width: 60px">{{ item.numberTurns }}</td>
+                  <td style="width: 60px">{{ orderMainDy.revertFlag == '翻转' ? '√': 'X' }}</td>
+                  <td style="width: 60px">{{ item.xiahuoFlag ? '√': '' }}</td>
+                  <td style="width: 60px">
+                    <el-tag type="success" v-if="item.qualified === '1'" size="mini">合格</el-tag>
+                    <el-tag type="danger" v-else-if="item.qualified === '0'" size="mini">不合格</el-tag>
+                    <div v-else></div>
+                  </td>
+                  <td style="width: 60px">
+                    <el-tag type="success" v-if="item.xiahuoFlag" size="mini">已下货</el-tag>
+                    <el-tag type="danger" v-if="item.tichuFlag" size="mini">已剔除</el-tag>
+                    <el-tag v-if="!item.xiahuoFlag && !item.tichuFlag" size="mini">执行中</el-tag>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -499,7 +503,8 @@ export default {
       ghTipShow: false,
       jkTipShow: false,
       fTipShow: false,
-      nowLoadingBatch: 0
+      nowLoadingBatch: 0,
+      isSendCenter: false
     };
   },
   watch: {
@@ -584,7 +589,8 @@ export default {
               }
             }
             // 当更换第二批次的第一箱进到达C时，输出一个自动调节居中机构信号。设备A-C回停机自动等待居中机构调整完再启动进入CD队列。
-            if(this.nowLoadingBatch == 2 && this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+            if(this.nowLoadingBatch == 2 && this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId && !this.isSendCenter) {
+              this.isSendCenter = true
               this.$message.success('发送自动调节居中机构信号！')
               // 给PLC发送禁止上货指令
               ipcRenderer.send('writeValuesToPLC', 'DBW40', 1);
@@ -1231,7 +1237,6 @@ export default {
             ipcRenderer.send('writeValuesToPLC', 'DBW26', 1);
           }
           this.nowEBoxImitateId = this.arrDE[0].boxImitateId;
-          this.arrDE[0].qualified = '1';
           // 更新进入E点时间
           this.arrDE[0].turnsInfoList[this.arrDE[0].numberTurns - 1].passETime = moment().format('YYYY-MM-DD HH:mm:ss');
           if(this.arrDE[0].qualified === '0') {
@@ -2192,18 +2197,18 @@ export default {
         td,
         th {
           border: 1px #dedede solid;
-          height: 35px;
+          height: 30px;
+          font-size: 13px;
+          text-align: center;
         }
         thead {
-          height: 35px;
+          height: 30px;
           background: #eeeeee;
         }
         td {
-          height: 40px;
-          font-size: 14px;
-        }
-        th {
-          text-align: center;
+          height: 30px;
+          font-size: 13px;
+          font-weight: 500;
         }
         .body-col {
           &:hover {
@@ -2228,7 +2233,7 @@ export default {
         }
       }
       .table_head {
-        height: 35px;
+        height: 30px;
         overflow: hidden;
         border-bottom: 1px #e4e4e4 solid;
         th {
@@ -2236,7 +2241,7 @@ export default {
         }
       }
       .table_list {
-        height: calc(100% - 36px);
+        height: calc(100% - 50px);
         overflow-y: auto;
         tr {
           cursor: pointer;
@@ -2295,6 +2300,9 @@ export default {
     padding: 8px;
     color: #000000;
     border-top: 1px solid #ebebeb;
+  }
+  ::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>
