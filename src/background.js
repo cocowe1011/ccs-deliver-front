@@ -248,6 +248,7 @@ var variables = {
   DBW26: 'DB101,INT26', // 不允许上货
   DBW34: 'DB101,INT34', // 扫码信息不一致报警
   DBW36: 'DB101,INT36', // 允许上货
+  DBW40: 'DB101,DBW40', // 发送自动居中信号
   DBW60: 'DB101,INT60', // 看门狗心跳
   DBW62: 'DB101,INT62',
   DBW64: 'DB101,INT64',

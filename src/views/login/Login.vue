@@ -171,10 +171,20 @@ export default {
         } else {
           this.$message.error(res.message)
           this.loadingStatus = false;
+          this.$nextTick(() => {
+              this.$router.replace({
+                path: '/homePage/welcomPage'
+              });
+            });
         }
       }).catch((err)=> {
         this.$message.error(err)
         this.loadingStatus = false;
+        this.$nextTick(() => {
+              this.$router.replace({
+                path: '/homePage/welcomPage'
+              });
+            });
       });
     },
     closewindow() {

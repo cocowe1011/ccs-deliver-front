@@ -277,9 +277,9 @@
               <div class="box-num-tip" style="top: 372px;left: 20px;" @click="showChuanSong('F')" @mouseover="showAllImages('arr-f')" @mouseout="hideAllImages('arr-f')">{{ arrF.length }}</div>
             </el-tooltip>
             <!-- 预警 -->
-            <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: 41px;top: 663px;"/>
+            <img src="./img/yujing.png" class="warning-img" v-show="yujingShow" style="left: -30px;top: 655px;"/>
             <img src="./img/baojing.png" class="warning-img" v-show="baojingShow" style="top: 717px;left: 352px;"/>
-            <div style="width: 70px;height: 70px;left: 695px; position: absolute;background-color: lightcoral;color: white;display: flex;justify-content: center;align-items: center;" v-show="banLoadStatus">
+            <div style="width: 70px;height: 70px;left: 680px;position: absolute;background-color: lightcoral;color: white;display: flex;justify-content: center;align-items: center;top: 792px;" v-show="banLoadStatus">
               禁止上货
             </div>
           </div>
@@ -291,7 +291,7 @@
       :visible.sync="drawer"
       :modal-append-to-body="false"
       border
-      size="1120px">
+      size="1200px">
       <div class="drawer-left">
         <div class="content_table">
           <div class="table_head">
@@ -357,14 +357,14 @@
         </div>
       </div>
       <div class="drawer-right">
-        <div :class="['transform-card',traAB?'transform-card-active':'']" @dragover.prevent @drop="dropItem('AB', $event)" @click="showCache('AB')">A-B队列</div>
-        <div :class="['transform-card',traBC?'transform-card-active':'']" @dragover.prevent @drop="dropItem('BC', $event)" @click="showCache('BC')">B-C队列</div>
-        <div :class="['transform-card',traCD?'transform-card-active':'']" @dragover.prevent @drop="dropItem('CD', $event)" @click="showCache('CD')">C-D队列</div>
-        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">D-E队列</div>
-        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">E-I队列</div>
-        <div :class="['transform-card',traDG?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DG', $event)" @click="showCache('DG')">F队列</div>
-        <div :class="['transform-card',traF?'transform-card-active':'']" @dragover.prevent @drop="dropItem('F', $event)" @click="showCache('F')">G-H队列</div>
-        <div :class="['transform-card',traGH?'transform-card-active':'']" @dragover.prevent @drop="dropItem('GH', $event)" @click="showCache('GH')">J-K队列</div>
+        <div :class="['transform-card',traAB?'transform-card-active':'']" @dragover.prevent @drop="dropItem('AB', $event)" @click="showCache('AB')" @dragenter="dragEnter" @dragleave="dragLeave">A-B队列</div>
+        <div :class="['transform-card',traBC?'transform-card-active':'']" @dragover.prevent @drop="dropItem('BC', $event)" @click="showCache('BC')" @dragenter="dragEnter" @dragleave="dragLeave">B-C队列</div>
+        <div :class="['transform-card',traCD?'transform-card-active':'']" @dragover.prevent @drop="dropItem('CD', $event)" @click="showCache('CD')" @dragenter="dragEnter" @dragleave="dragLeave">C-D队列</div>
+        <div :class="['transform-card',traDE?'transform-card-active':'']" @dragover.prevent @drop="dropItem('DE', $event)" @click="showCache('DE')" @dragenter="dragEnter" @dragleave="dragLeave">D-E队列</div>
+        <div :class="['transform-card',traEI?'transform-card-active':'']" @dragover.prevent @drop="dropItem('EI', $event)" @click="showCache('EI')" @dragenter="dragEnter" @dragleave="dragLeave">E-I队列</div>
+        <div :class="['transform-card',traGH?'transform-card-active':'']" @dragover.prevent @drop="dropItem('GH', $event)" @click="showCache('GH')" @dragenter="dragEnter" @dragleave="dragLeave">G-H队列</div>
+        <div :class="['transform-card',traJK?'transform-card-active':'']" @dragover.prevent @drop="dropItem('JK', $event)" @click="showCache('JK')" @dragenter="dragEnter" @dragleave="dragLeave">J-K队列</div>
+        <div :class="['transform-card',traF?'transform-card-active':'']" @dragover.prevent @drop="dropItem('F', $event)" @click="showCache('F')" @dragenter="dragEnter" @dragleave="dragLeave">F队列</div>
       </div>
     </el-drawer>
   </div>
@@ -417,9 +417,11 @@ export default {
       traAB: false,
       traBC: false,
       traCD: false,
-      traDG: false,
-      traGH: false,
+      traDE: false,
+      traEI: false,
       traF: false,
+      traGH: false,
+      traJK: false,
       // 当前被拖动元素的索引
       dragIndex: '',
       // PLC光电状态数组
@@ -428,8 +430,6 @@ export default {
       dianJiStatusArr: '',
       // 当前运行订单对象
       orderMainDy: {},
-      // 当前圈数
-      nowNumberTurns: 1,
       // 束下实际数据
       lightBeamRealTimeSpeed: 0,
       // 是否正在进入A点
@@ -498,7 +498,8 @@ export default {
       eiTipShow: false,
       ghTipShow: false,
       jkTipShow: false,
-      fTipShow: false
+      fTipShow: false,
+      nowLoadingBatch: 0
     };
   },
   watch: {
@@ -515,6 +516,7 @@ export default {
           this.arrAB.push({orderId: this.orderMainDy.orderId, orderNo: this.orderMainDy.orderNo, boxImitateId: boxImitateId, numberTurns: 1, loadScanCode: this.loadScanCode, turnsInfoList:[{numberTurns: 1, passATime: moment().format('YYYY-MM-DD HH:mm:ss')}]});
           // 判断当前箱子是不是当前批次消毒的第一个
           if(this.ifNextPassABoxIsFirst) {
+            this.nowLoadingBatch++;
             this.judgeBanLoadBoxImitateId = boxImitateId;
             this.ifNextPassABoxIsFirst = false; // 设置为false,下一个经过A点的箱子绝不是此批次第一个箱子了
           }
@@ -559,19 +561,36 @@ export default {
     pointC: {
       handler(newVal, oldVal) {
         // enteringPonitC
-        if(!this.enteringPonitC && newVal === '1' && oldVal === '0') { //货物开始进入B点
+        if(!this.enteringPonitC && newVal === '1' && oldVal === '0') { //货物开始进入c点
           this.enteringPonitC = true
-          // TODO 这个时间判断变成C点了 一会把他安排上
+          // 这个时间判断变成C点了 一会把他安排上
           if(this.arrBC.length > 0) {
-            this.$message.success('开始进入B点')
-            // 进入B的下降沿，获取AB队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
+            this.$message.success('开始进入C点')
+            // 进入C的下降沿，获取BC队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
             const boxImitateId = this.arrBC[0].boxImitateId;
             // 计算时间
             setTimeout(() => {
               this.getUndercutProcess(boxImitateId);
             }, 2000);
+            // 当上一批次的最后一箱经过C时才能允许下一批次的进入A，解锁A，允许上货
+            // 判断是否满足可上货条件，就是当前这批消毒的箱子，最后一个满足圈数并且离开A，即可上货
+            if(this.arrBC[0].boxImitateId == this.lastNewBoxPassABoxImitateId) {
+              if(this.arrBC[0].numberTurns == this.orderMainDy.numberTurns) {
+                this.ifNextPassABoxIsFirst = true;
+                this.banLoadStatus = false; // 隐藏禁止上货图标
+                this.judgeBanLoadBoxImitateId = ''
+                // 给PLC发送允许上货命令
+                ipcRenderer.send('writeValuesToPLC', 'DBW36', 1);
+              }
+            }
+            // 当更换第二批次的第一箱进到达C时，输出一个自动调节居中机构信号。设备A-C回停机自动等待居中机构调整完再启动进入CD队列。
+            if(this.nowLoadingBatch == 2 && this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
+              this.$message.success('发送自动调节居中机构信号！')
+              // 给PLC发送禁止上货指令
+              ipcRenderer.send('writeValuesToPLC', 'DBW40', 1);
+            }
           }
-        } else if(this.enteringPonitC && newVal === '0' && oldVal === '1') { // 货物走出B点
+        } else if(this.enteringPonitC && newVal === '0' && oldVal === '1') { // 货物走出c点
           this.enteringPonitC = false
           if(this.arrBC.length > 0) {
           this.dealBoxLogic('C')
@@ -610,7 +629,7 @@ export default {
             this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '走出E点，扫码信息：' + this.labyrinthScanCode, 'log');
             // 把箱子推入EI队列
             this.arrEI.push(this.arrDE[0]);
-            this.arrDE[0].splice(0,1)
+            this.arrDE.splice(0,1)
           }
         } else {
           // 先暂定报警吧，因为肯定不会出现这种情况，出现了视为异常，不做任何处理
@@ -990,39 +1009,125 @@ export default {
       switch (dropZoneId) {
         case 'AB':
           this.arrAB.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至A-B队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
         case 'BC':
           this.arrBC.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至B-C队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
         case 'CD':
           this.arrCD.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至C-D队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
-        case 'DG':
-          this.arrDG.push(this.boxArr[this.dragIndex]);
+        case 'DE':
+          this.arrDE.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至D-E队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
         case 'F':
           this.arrF.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至F队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
+          break;
+        case 'EI':
+          this.arrEI.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至EI队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
         case 'GH':
           this.arrGH.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至G-H队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
+          break;
+        case 'JK':
+          this.arrJK.push(this.boxArr[this.dragIndex]);
+          this.$notify({
+            title: '移动成功！',
+            message: '成功移至J-K队列',
+            position: 'top-left',
+            offset: 70,
+            duration:0,
+            type: 'success'
+          });
           break;
         default:
           break;
       }
       this.boxArr.splice(this.dragIndex,1);
-      console.log(this.boxArr)
+      // 出去拖动背景色
+      const draggingRows = document.querySelectorAll(".transform-card.hover");
+      console.log(draggingRows)
+      draggingRows.forEach(row => {
+        row.classList.remove("hover");
+      });
+    },
+    dragEnter(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.target.classList.add('hover');
+    },
+    dragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.target.classList.remove('hover');
     },
     indexMethod(index) {
       return index + 1;
     },
     showCache(transform) {
-      this.boxArr = [];
-      this.traAB = false
-      this.traBC = false
-      this.traCD = false
-      this.traDG = false
-      this.traGH = false
-      this.traF = false
+      this.traAB = false;
+      this.traBC = false;
+      this.traCD = false;
+      this.traDE = false;
+      this.traEI = false;
+      this.traGH = false;
+      this.traJK = false;
+      this.traF = false;
       switch (transform) {
         case 'AB':
           this.boxArr = this.arrAB;
@@ -1036,17 +1141,25 @@ export default {
           this.boxArr = this.arrCD;
           this.traCD = true
           break;
-        case 'DG':
-          this.boxArr = this.arrDG;
-          this.traDG = true
+        case 'DE':
+          this.boxArr = this.arrDE;
+          this.traDE = true
           break;
-        case 'F':
-          this.boxArr = this.arrF;
-          this.traF = true
+        case 'EI':
+          this.boxArr = this.arrEI;
+          this.traEI = true
           break;
         case 'GH':
           this.boxArr = this.arrGH;
           this.traGH = true
+          break;
+        case 'JK':
+          this.boxArr = this.arrJK;
+          this.traJK = true
+          break;
+        case 'F':
+          this.boxArr = this.arrF;
+          this.traF = true
           break;
         default:
           break;
@@ -1076,18 +1189,6 @@ export default {
         case 'A':
           this.loadScanCode = this.loadScanCodeTemp.replace(/\s/g,'');
           this.arrAB[this.arrAB.length - 1].loadScanCode = this.loadScanCode;
-          // TODO 判断是否满足可上货条件，就是当前这批消毒的箱子，最后一个满足圈数并且离开A，即可上货
-          // if(this.arrAB[this.arrAB.length - 1].boxImitateId == this.lastNewBoxPassABoxImitateId) {
-          //   if(this.arrAB[this.arrAB.length - 1].numberTurns == this.orderMainDy.numberTurns) {
-          //     // 开始上新货，当前箱子圈数变成1
-          //     this.nowNumberTurns = 1;
-          //     this.ifNextPassABoxIsFirst = true;
-          //     this.banLoadStatus = false; // 隐藏禁止上货图标
-          //     this.judgeBanLoadBoxImitateId = ''
-          //     // 给PLC发送允许上货命令
-          //     ipcRenderer.send('writeValuesToPLC', 'DBW36', 1);
-          //   }
-          // }
           this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrAB[this.arrAB.length - 1].boxImitateId + '离开A点，扫码信息：' + this.loadScanCode, 'log');
           break;
         case 'B':
@@ -1101,11 +1202,6 @@ export default {
           this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrBC[this.arrBC.length - 1].boxImitateId + '经过B点，扫码信息：' + this.arrBC[this.arrBC.length - 1].loadScanCode, 'log');
           break;
         case 'C':
-          // TODO这里保持疑问 如果是下一批第一个箱子经过E，则取消下货预警和报警
-          // if(this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
-          //   this.yujingShow = false;
-          //   this.baojingShow = false;
-          // }
           this.arrCD.push(this.arrBC[0]);
           this.arrCD[this.arrCD.length - 1].turnsInfoList[this.arrCD[this.arrCD.length - 1].numberTurns - 1].passCTime = moment().format('YYYY-MM-DD HH:mm:ss');
           // 删除BC队列第一个
@@ -1126,11 +1222,16 @@ export default {
           // 判断进入E点的箱子工艺是否合格，合格不做处理，不合格剔除
           // 判断是不是符合禁止上货条件
           if(this.arrDE[0].boxImitateId == this.judgeBanLoadBoxImitateId) {
-            this.banLoadStatus = true; // 显示禁止上货图标
+            // 如果是下一批第一个箱子经过E，则取消下货预警和报警
+            this.yujingShow = false;
+            this.baojingShow = false;
+            // 显示禁止上货图标
+            this.banLoadStatus = true;
             // 给PLC发送禁止上货指令
             ipcRenderer.send('writeValuesToPLC', 'DBW26', 1);
           }
           this.nowEBoxImitateId = this.arrDE[0].boxImitateId;
+          this.arrDE[0].qualified = '1';
           // 更新进入E点时间
           this.arrDE[0].turnsInfoList[this.arrDE[0].numberTurns - 1].passETime = moment().format('YYYY-MM-DD HH:mm:ss');
           if(this.arrDE[0].qualified === '0') {
@@ -1165,34 +1266,36 @@ export default {
           }
           break;
         case 'F':
-          // 下货，判断箱子是否有下货标识 nowTiChuNum当前剔除数量
-          if(this.arrEI.length > this.nowTiChuNum) {
-            // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
-            if(this.arrEI[this.nowTiChuNum].xiahuoFlag) {
-              // 符合进入F队列
-              this.arrF.push(this.arrEI[this.nowTiChuNum]);
-              this.arrF[this.arrF.length - 1].turnsInfoList[this.arrF[this.arrF.length - 1].numberTurns - 1].passFTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              this.arrEI.splice(this.nowTiChuNum,1);
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrF[this.arrF.length - 1].loadScanCode, 'log');
-              // 生成箱报告
-              this.nowOutNum++;
-              const param = {
-                boxMainDTOList: [this.arrF[this.arrF.length - 1]],
-                finishOrder: false
-              }
-              // 生成箱报告
-              await HttpUtil.post('/box/save', param).then((res)=> {
-                if(res.data == 1) {
-                  this.$message.success('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！')
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！', 'log');
-                } else {
-                  this.$message.error('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！')
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！', 'log');
+          if(this.pointF === '1') {
+            // 下货，判断箱子是否有下货标识 nowTiChuNum当前剔除数量
+            if(this.arrEI.length > this.nowTiChuNum) {
+              // 取EI队列，除去剔除的第一个箱子，判断是否有下货标识
+              if(this.arrEI[this.nowTiChuNum].xiahuoFlag) {
+                // 符合进入F队列
+                this.arrF.push(this.arrEI[this.nowTiChuNum]);
+                this.arrF[this.arrF.length - 1].turnsInfoList[this.arrF[this.arrF.length - 1].numberTurns - 1].passFTime = moment().format('YYYY-MM-DD HH:mm:ss');
+                this.arrEI.splice(this.nowTiChuNum,1);
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrF[this.arrF.length - 1].loadScanCode, 'log');
+                // 生成箱报告
+                this.nowOutNum++;
+                const param = {
+                  boxMainDTOList: [this.arrF[this.arrF.length - 1]],
+                  finishOrder: false
                 }
-              }).catch((err)=> {
-                this.$message.error('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！' + err)
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！' + err, 'log');
-              });
+                // 生成箱报告
+                await HttpUtil.post('/box/save', param).then((res)=> {
+                  if(res.data == 1) {
+                    this.$message.success('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！', 'log');
+                  } else {
+                    this.$message.error('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！')
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！', 'log');
+                  }
+                }).catch((err)=> {
+                  this.$message.error('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！' + err)
+                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，生成箱报告失败！' + err, 'log');
+                });
+              }
             }
           }
           break;
@@ -1210,10 +1313,15 @@ export default {
           if(this.pointH === '1') {
             if(this.arrGH.length > 0) {
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[0].boxImitateId + '经过H点，扫码信息：' + this.arrGH[0].loadScanCode + '。当前 ' + this.arrGH[0].numberTurns + ' 圈，剩余 ' + (Number(this.orderMainDy.numberTurns) - Number(this.arrGH[0].numberTurns)) + ' 圈', 'log');
+              // 赋值当前圈经过K点的时间
+              this.arrGH[0].turnsInfoList[this.arrGH[0].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              // 将arrGH队列第一个进入AB队列
               this.arrAB.push(this.arrGH[0]);
               // 将arrGH队列第一个进入AB队列，箱子圈数加1
               this.arrAB[this.arrAB.length - 1].numberTurns = this.arrAB[this.arrAB.length - 1].numberTurns + 1;
-              this.arrAB[this.arrAB.length - 1].turnsInfoList[this.arrAB[this.arrAB.length - 1].numberTurns - 1].passHTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              // 增加第二圈集合
+              const nowTurns = this.arrAB[this.arrAB.length - 1].numberTurns;
+              this.arrAB[this.arrAB.length - 1].turnsInfoList.push({numberTurns: nowTurns});
               this.arrGH.splice(0, 1);
             }
           }
@@ -1228,7 +1336,6 @@ export default {
                 this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '经过I点，扫码信息：' + this.arrEI[this.nowTiChuNum].loadScanCode + '。被剔除！', 'log');
                 this.arrEI[this.nowTiChuNum].turnsInfoList[this.arrEI[this.nowTiChuNum].numberTurns - 1].passITime = moment().format('YYYY-MM-DD HH:mm:ss');
                 // 生成箱报告
-                this.nowTiChuNum++;
                 const param = {
                   boxMainDTOList: [this.arrEI[this.nowTiChuNum]],
                   finishOrder: false
@@ -1246,6 +1353,7 @@ export default {
                   this.$message.error('货物：' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err)
                   this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '，生成箱报告失败！' + err, 'log');
                 });
+                this.nowTiChuNum++;
               }
             }
           }
@@ -1334,7 +1442,7 @@ export default {
     async generateBatchReport() {
       // 生成批报告，并且更新一下所有箱子
       const param = {
-        boxMainDTOList: [...this.arrAB, ...this.arrBC, ...this.arrCD, ...this.arrDG, ...this.arrGH],
+        boxMainDTOList: [...this.arrAB, ...this.arrBC, ...this.arrCD, ...this.arrDE, ...this.arrEI, ...this.arrGH, ...this.arrJK, ...this.arrF],
         finishOrder: true
       }
       await HttpUtil.post('/box/save', param).then((res)=> {
@@ -1376,8 +1484,10 @@ export default {
       this.arrAB = [];
       this.arrBC = [];
       this.arrCD = [];
-      this.arrDG = [];
+      this.arrDE = [];
+      this.arrEI = [];
       this.arrGH = [];
+      this.arrJK = [];
       this.arrF = []; // 被剔除的箱子缓存
       // 当前点击的传送带区域内的箱子列表，一个中间变量
       this.boxArr = [];
@@ -1385,8 +1495,10 @@ export default {
       this.traAB = false;
       this.traBC = false;
       this.traCD = false;
-      this.traDG = false;
+      this.traDE = false;
+      this.traEI = false;
       this.traGH = false;
+      this.traJK = false;
       this.traF = false;
       // 当前被拖动元素的索引
       this.dragIndex = '';
@@ -1394,8 +1506,6 @@ export default {
       this.guangDianStatusArr = '';
       // PLC点击状态数组
       this.dianJiStatusArr = '';
-      // 当前圈数
-      this.nowNumberTurns = 1;
       // 是否正在进入A点
       this.enteringPonitA = false;
       // 是否正在进入B点
@@ -2062,7 +2172,7 @@ export default {
     }
   }
   .drawer-left {
-    width: 900px;
+    width: 1020px;
     height: 100%;
     float: left;
     .content_table {
@@ -2076,7 +2186,7 @@ export default {
         table {
           width: 100%;
           table-layout: fixed;
-          border-collapse: collapse;
+          border-spacing:0;
           text-align: center;
         }
         td,
@@ -2106,6 +2216,16 @@ export default {
             }
           }
         }
+        /* 添加这个样式来在拖动时隐藏边框 */
+        .body-col.dragging {
+          border: none;
+          pointer-events: none;
+        }
+
+        /* 添加这个样式来在拖动时高亮目标行 */
+        .body-col.drag-over {
+          border: 1px dashed #999;
+        }
       }
       .table_head {
         height: 35px;
@@ -2125,30 +2245,56 @@ export default {
     }
   }
   .drawer-right {
-    width: 200px;
+    width: 180px;
     height: 100%;
     float: left;
+    padding: 0px 5px;
+    background-color: white;
+    border-left: 1px #efefef solid;
     .transform-card {
       width: 100%;
-      height: 50px;
+      height: 38px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: antiquewhite;
-      border: 1px white solid;
+      background-color: #ecf5ff;
+      border: 1px #b3d8ff solid;
       cursor: pointer;
-    }
-    .transform-card:hover {
-      background-color: aquamarine;
+      font-weight: 700;
+      margin-bottom: 3px;
+      color: #409eff;
     }
     .transform-card-active {
-      background-color: #c2eeff;
+      background-color: #409eff;
+      border-color: #409eff;
+      color: #fff;
     }
   }
   ::v-deep .el-drawer__body{
     flex: none;
     height: calc(100% - 79px);
     overflow: hidden;
+  }
+  /* 添加半透明效果和虚线边框 */
+  .body-col.dragging {
+    opacity: 0.6;
+    border: 1px dashed #ccc;
+  }
+
+  /* 添加过渡效果 */
+  .transform-card {
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  .transform-card.hover {
+    background-color: #409eff;
+    color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+  ::v-deep .el-drawer__header {
+    margin-bottom: 0px;
+    padding: 8px;
+    color: #000000;
+    border-top: 1px solid #ebebeb;
   }
 }
 </style>

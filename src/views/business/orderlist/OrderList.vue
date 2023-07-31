@@ -285,26 +285,26 @@ export default {
       });
     },
     async getOrderList() {
-      this.getOrderListLoading = true
-      await HttpUtil.get('/order/getOrderList').then((res)=> {
-        this.tableData = res.data
-        this.tableData.forEach(item => {
-          item.revertFlag = item.revertFlag == '1' ? '翻转' : ''
-        })
-        this.orderMainForm = {};
-        this.isNewSave = false;
-        this.isEdit = false;
-        setTimeout(() => {
-          this.getOrderListLoading = false
-        }, 500);
-      }).catch((err)=> {
-        setTimeout(() => {
-          this.getOrderListLoading = false
-        }, 500);
-        // 网络异常 稍后再试
-        this.$message.error('查询失败！' + err);
-      });
-      // this.tableData = [{revertFlag: '翻转', orderId: '202306160001', orderName: '威高一次性管路'}];
+      // this.getOrderListLoading = true
+      // await HttpUtil.get('/order/getOrderList').then((res)=> {
+      //   this.tableData = res.data
+      //   this.tableData.forEach(item => {
+      //     item.revertFlag = item.revertFlag == '1' ? '翻转' : ''
+      //   })
+      //   this.orderMainForm = {};
+      //   this.isNewSave = false;
+      //   this.isEdit = false;
+      //   setTimeout(() => {
+      //     this.getOrderListLoading = false
+      //   }, 500);
+      // }).catch((err)=> {
+      //   setTimeout(() => {
+      //     this.getOrderListLoading = false
+      //   }, 500);
+      //   // 网络异常 稍后再试
+      //   this.$message.error('查询失败！' + err);
+      // });
+      this.tableData = [{revertFlag: '翻转', orderId: '202306160001', orderName: '威高一次性管路', numberTurns: 2}];
     },
     showDynamicGraph() {
       this.isDynamicGraphShow = true;
