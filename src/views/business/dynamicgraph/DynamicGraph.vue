@@ -33,13 +33,13 @@
             <div class="data-card" style="padding: 7px 10px 7px 10px;">
               <div class="data-card-border">
                 <div class="data-card-border-borderTop">束下设置速度</div>
-                <div class="data-card-border-borderDown">{{ orderMainDy.sxSpeedSet }}米/分钟</div>
+                <div class="data-card-border-borderDown">{{ orderMainDy.sxSpeedSet }}mm/分钟</div>
               </div>
             </div>
             <div class="data-card" style="padding: 7px 20px 7px 10px;">
               <div class="data-card-border">
                 <div class="data-card-border-borderTop granient-text">束下实时速度</div>
-                <div class="data-card-border-borderDown">{{ lightBeamRealTimeSpeed }}米/分钟</div>
+                <div class="data-card-border-borderDown">{{ lightBeamRealTimeSpeed }}mm/分钟</div>
               </div>
             </div>
             <div class="data-card" style="padding: 7px 10px 14px 20px;">
@@ -495,6 +495,8 @@ export default {
       shuxiaSpeedProportion: 1, // 束下前输送速度比
       logNotReadNumber: 0, // 日志未读数量
       errorLogNotReadNumber: 0, // 错误日志未读数量
+      timers: {},
+      beltRunStatus: 0,
       abTipShow: false,
       bcTipShow: false,
       cdTipShow: false,
@@ -508,6 +510,19 @@ export default {
     };
   },
   watch: {
+    beltRunStatus: {
+      async handler(newVal, oldVal) {
+        if(newVal == 0) {
+          if(JSON.stringify(this.timers) != '{}') {
+            this.pauseAllTimers()
+          }
+        } else if(newVal == 1) {
+          if(JSON.stringify(this.timers) != '{}') {
+            this.resumeAllTimers()
+          }
+        }
+      }
+    },
     pointA: {
       async handler(newVal, oldVal) {
         if(!this.enteringPonitA && newVal === '1' && oldVal === '0') { //货物开始进入A点
@@ -573,10 +588,9 @@ export default {
             this.$message.success('开始进入C点')
             // 进入C的下降沿，获取BC队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
             const boxImitateId = this.arrBC[0].boxImitateId;
-            // 计算时间
-            setTimeout(() => {
-              this.getUndercutProcess(boxImitateId);
-            }, 2000);
+            // 计算时间 改为任务管理
+            const times = this.calculateMilliseconds(((Number(this.l11) + Number(this.orderMainDy.boxWidth))/Number(this.lightBeamRealTimeSpeed)).toFixed(2),(Number(this.l2)/(Number(this.lightBeamRealTimeSpeed)  * (this.shuxiaSpeedProportion/10)) ).toFixed(2));
+            this.startTimerWithDelay(boxImitateId, times)
             // 当上一批次的最后一箱经过C时才能允许下一批次的进入A，解锁A，允许上货
             // 判断是否满足可上货条件，就是当前这批消毒的箱子，最后一个满足圈数并且离开A，即可上货
             if(this.arrBC[0].boxImitateId == this.lastNewBoxPassABoxImitateId) {
@@ -799,9 +813,25 @@ export default {
       //判断箱子在哪个队列 AB BC CD DG GH,status为true为合格，false为不合格
       for (let index = 0; index < this.arrCD.length; index++) {
         if(this.arrCD[index].boxImitateId == boxImitateIdVal) {
-          this.arrCD[index].qualified = status?'1':'0';
-          // 给当前圈也赋值合格
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].qualified = status?'1':'0';
+          if(this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].qualified == undefined) {
+            this.arrCD[index].qualified = status?'1':'0';
+            // 给当前圈也赋值合格
+            this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].qualified = status?'1':'0';
+            if(!status) {
+              // 给后一个箱子赋值不合格
+              if(index <= this.arrCD.length - 1) {
+                this.arrCD[index + 1].qualified = '0';
+                // 给当前圈也赋值合格
+                this.arrCD[index + 1].turnsInfoList[this.arrCD[index + 1].numberTurns - 1].qualified = '0';
+              }
+              // 给前一个箱子赋值不合格  
+              if(index >= 1) {
+                this.arrCD[index - 1].qualified = '0';
+                // 给当前圈也赋值合格
+                this.arrCD[index - 1].turnsInfoList[this.arrCD[index - 1].numberTurns - 1].qualified = '0';
+              }  
+            }
+          }
           break;
         }
       }
@@ -1725,6 +1755,33 @@ export default {
         default:
           break;
       }
+    },
+    startTimerWithDelay(boxImitateId, delay) {
+      const timerId = setTimeout(() => {
+        // 执行逻辑
+        this.getUndercutProcess(boxImitateId);
+        // 执行完删除定时器 delete 操作符用于删除对象的某个属性
+        delete this.timers[boxImitateId];
+      }, delay);
+      this.timers[boxImitateId] = {
+        timerId: timerId,
+        endTime: Date.now() + delay,
+        remainingTime: delay,
+      };
+    },
+    pauseAllTimers() {
+      for (const boxImitateId in this.timers) {
+        clearTimeout(this.timers[boxImitateId].timerId);
+        this.timers[boxImitateId].remainingTime = this.timers[boxImitateId].endTime - Date.now();
+      }
+    },
+    resumeAllTimers() {
+      const currentTime = Date.now();
+      for (const boxImitateId in this.timers) {
+        const remainingTime = this.timers[boxImitateId].remainingTime;
+        this.startTimerWithDelay(boxImitateId, remainingTime);
+        this.timers[boxImitateId].endTime = currentTime + remainingTime;
+      }
     }
   },
   created() {
@@ -1737,18 +1794,19 @@ export default {
     // 订阅<状态球>eventBus发布的消息
     EventBus.$on('pushPLCMessage', eventData => {
       // --------无PLC测试时，这里以下代码毙掉--------
-      // this.guangDianStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW70).toString(2), 16);
-      // this.pointA = this.guangDianStatusArr[7];
-      // this.pointB = this.guangDianStatusArr[6];
-      // this.pointC = this.guangDianStatusArr[5];
-      // this.pointD = this.guangDianStatusArr[4];
-      // this.pointE = this.guangDianStatusArr[3];
-      // this.pointF = this.guangDianStatusArr[2];
-      // this.pointG = this.guangDianStatusArr[1];
-      // this.pointH = this.guangDianStatusArr[0];
-      // this.pointI = this.guangDianStatusArr[15];
-      // this.pointG = this.guangDianStatusArr[14];
-      // this.pointK = this.guangDianStatusArr[13];
+      // 输送线运行状态
+      this.beltRunStatus = Number(eventData.DBW62);
+      if(Number(eventData.DBW62) == 1) {
+        this.guangDianStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW70).toString(2), 16);
+        this.pointA = this.guangDianStatusArr[7];
+        this.pointB = this.guangDianStatusArr[6];
+        this.pointC = this.guangDianStatusArr[5];
+        this.pointD = this.guangDianStatusArr[4];
+        this.pointE = this.guangDianStatusArr[3];
+        this.pointF = this.guangDianStatusArr[2];
+        this.pointG = this.guangDianStatusArr[1];
+        this.pointH = this.guangDianStatusArr[0];
+      }
       // --------无PLC测试时，这里以上代码毙掉--------
       this.dianJiStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW72).toString(2), 16);
       this.lightBeamRealTimeSpeed = Number(eventData.DBW68);
@@ -1757,7 +1815,7 @@ export default {
       // 迷宫出口固定扫码
       this.labyrinthScanCodeTemp = eventData.DBB130??'';
       // 束下输送速度比
-      // this.shuxiaSpeedProportion = Number(eventData.DBW76);
+      this.shuxiaSpeedProportion = Number(eventData.DBW76);
       // 监控报警日志
       if(eventData.DBW66 != null && eventData.DBW66 != undefined) {
         this.errorModArr = this.PrefixZero(this.convertToWord(eventData.DBW66).toString(2), 16);

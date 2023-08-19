@@ -2,6 +2,17 @@ import { app, BrowserWindow, globalShortcut, ipcMain, Menu, dialog, Tray, screen
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import nodes7 from 'nodes7';
 import HttpUtil from '@/utils/HttpUtil'
+import logger from 'electron-log'
+// 设置日志文件的保存路径
+logger.transports.file.file = app.getPath("userData") + "/app.log";
+
+// 初始化日志记录器
+logger.transports.file.level = "info";
+logger.transports.console.level = "info";
+// 日期样式
+logger.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}]{scope} {text}'
+console.log(app.getPath("userData"))
+logger.transports.file.file = app.getPath("userData") + "/app.log";
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -80,6 +91,12 @@ app.on('ready', () => {
     mainWindow.unmaximize()
     mainWindow.setBounds({ x: 10, y: 10, width: screen.getPrimaryDisplay().workAreaSize.width - 20, height: screen.getPrimaryDisplay().workAreaSize.height - 20 });
   })
+  // 启动plc conPLC
+  ipcMain.on('conPLC', (event, arg1, arg2) => {
+    if (process.env.NODE_ENV === 'production') {
+      conPLC();
+    }
+  })
   mainWindow.on('maximize', () => {
     mainWindow.webContents.send('mainWin-max', 'max-window')
   })
@@ -107,18 +124,19 @@ app.on('ready', () => {
       }
     })
   });
-  let revert = false;
-  setInterval(() => {
-    if(mainWindow) {
-      if(revert) {
-        mainWindow.webContents.send('receivedMsg', {DBW60:0, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
-      } else {
-        mainWindow.webContents.send('receivedMsg', {DBW60:1, DBW68:99,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          '})
+  if (process.env.NODE_ENV === 'development') {
+    let revert = false;
+    setInterval(() => {
+      if(mainWindow) {
+        if(revert) {
+          mainWindow.webContents.send('receivedMsg', {DBW60:0,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19})
+        } else {
+          mainWindow.webContents.send('receivedMsg', {DBW60:1,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19})
+        }
+        revert = !revert;
       }
-      revert = !revert;
-    }
-  }, 100);
-
+    }, 100);
+  }
   setAppTray();
   if (process.env.NODE_ENV === 'production') {
     // 启动Java进程
@@ -138,18 +156,48 @@ app.on('ready', () => {
     // });
   }
 
+// 开发者工具
+globalShortcut.register('CommandOrControl+L', () => {
+  mainWindow.webContents.openDevTools()
+})
+globalShortcut.register('CommandOrControl+F11', () => {
+  mainWindow.isFullScreen() ? mainWindow.setFullScreen(false) : mainWindow.setFullScreen(true);
+})
+// 定义自定义事件
+ipcMain.on('full_screen', function() {
+  mainWindow.isFullScreen() ? mainWindow.setFullScreen(false) : mainWindow.setFullScreen(true);
+})
+// 程序启动时判断是否存在报表、日志等本地文件夹，没有就创建
+createFile('batchReport.grf');
+createFile('boxreport.grf');
+});
+
+function conPLC() {
+  logger.info('开始连接PLC')
   // 查询配置
   HttpUtil.get('/cssConfig/getConfig').then((res)=> {
+    logger.info(JSON.stringify(res))
+    if(!res.data.plcPort) {
+      logger.info('配置查询失败')
+      // We have an error. Maybe the PLC is not reachable.
+      conPLC();
+      return false;
+    }
     conn.initiateConnection( { port: Number(res.data.plcPort), host: res.data.plcIp, rack: 0, slot: 1, debug: false }, (err) => {
       if (typeof(err) !== "undefined") {
+        logger.info('连接PLC失败' + JSON.stringify(err))
         // We have an error. Maybe the PLC is not reachable.
+        conPLC();
         console.log(err);
+        return false;
         // process.exit();
       }
       conn.setTranslationCB(function(tag) { return variables[tag]; }); // This sets the "translation" to allow us to work with object names
-
+      logger.info('连接PLC成功')
       // PLC看门狗心跳
       conn.addItems('DBW60')
+      // 输送线自动运行 DBW62
+      conn.addItems('DBW62')
       // 故障信息
       conn.addItems('DBW66')
       // 输送线不允许加速器写
@@ -171,25 +219,26 @@ app.on('ready', () => {
       setInterval(() => {
         conn.readAllItems(valuesReady);
       }, 50);
+      // 发送心跳
+      sendHeartToPLC()
     });
   }).catch((err)=> {
-    console.log('config error!')
+    logger.info('config error!')
   });
-  // 开发者工具
-  globalShortcut.register('CommandOrControl+L', () => {
-    mainWindow.webContents.openDevTools()
-  })
-  globalShortcut.register('CommandOrControl+F11', () => {
-    mainWindow.isFullScreen() ? mainWindow.setFullScreen(false) : mainWindow.setFullScreen(true);
-  })
-  // 定义自定义事件
-  ipcMain.on('full_screen', function() {
-    mainWindow.isFullScreen() ? mainWindow.setFullScreen(false) : mainWindow.setFullScreen(true);
-  })
-  // 程序启动时判断是否存在报表、日志等本地文件夹，没有就创建
-  createFile('batchReport.grf');
-  createFile('boxreport.grf');
-});
+}
+
+let times = 1;
+let nowValue = 0;
+function sendHeartToPLC() {
+  setInterval(() => {
+    if(times > 5) {
+        times = 1;
+        nowValue = 1 - nowValue;
+    }
+    times++;
+    conn.writeItems('DBW0', nowValue, valuesWritten);
+  }, 200); // 每200毫秒执行一次交替
+}
 
 function createFile(fileNameVal) {
   const sourcePath = path.join(__static, './report', fileNameVal);// 要复制的文件的路径=
@@ -233,6 +282,7 @@ function createFile(fileNameVal) {
 }
 
 var variables = {
+  DBW0: 'DB101,INT0', // 心跳
   DBW2: 'DB101,INT2', // 加速器设定输送线速度
   DBW4: 'DB101,INT4', // 加速器允许货物进入辐照区
   DBW6: 'DB101,INT6', // 暂停按钮
@@ -250,7 +300,7 @@ var variables = {
   DBW36: 'DB101,INT36', // 允许上货
   DBW40: 'DB101,DBW40', // 发送自动居中信号
   DBW60: 'DB101,INT60', // 看门狗心跳
-  DBW62: 'DB101,INT62',
+  DBW62: 'DB101,INT62', // 输送系统自动运行
   DBW64: 'DB101,INT64',
   DBW66: 'DB101,INT66', // 故障信息
   DBW68: 'DB101,INT68',
