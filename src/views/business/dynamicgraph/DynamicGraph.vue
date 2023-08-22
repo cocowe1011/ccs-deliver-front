@@ -234,6 +234,10 @@
               <div class='star' v-show="pointK == '1'"></div>
               <div class="pointText">K</div>
             </div>
+            <div class="guangdian" style="right: 664px;top: 545px;" @click="analogOptoelectronics('L')">
+              <div class='star' v-show="pointL == '1'"></div>
+              <div class="pointText">L</div>
+            </div>
             <!-- 电机状态 -->
             <div v-show="false" :class="['dianji', dianJiStatusArr[7] == '1' ? 'dianji-active' : '']" style="top: 640px;right: 133px;">100#电机</div>
             <div v-show="false" :class="['dianji', dianJiStatusArr[6] == '1' ? 'dianji-active' : '']" style="top: 416px;right: 6px;">101#电机</div>
@@ -413,6 +417,7 @@ export default {
       pointI: '0',
       pointJ: '0',
       pointK: '0',
+      pointL: '0',
       // 控制拖动传送带抽屉弹窗是否显示和隐藏
       drawer: false,
       // 当前点击的传送带区域内的箱子列表，一个中间变量
@@ -456,10 +461,6 @@ export default {
       l11: 0,
       // l2长度，取配置
       l2: 0,
-      // 最后一个经过H点箱子的id，用于获取当前经过E点箱子的模拟id
-      lastRouteHPoint: '',
-      // 最后一个经过F点箱子的id，用于获取当前经过E点箱子的模拟id
-      lastRouteFPoint: '',
       // 下货预警标识
       yujingShow: false,
       // 下货报警标识
@@ -506,7 +507,8 @@ export default {
       jkTipShow: false,
       fTipShow: false,
       nowLoadingBatch: 0,
-      isSendCenter: false
+      isSendCenter: false,
+      lastRouteLPoint: ''
     };
   },
   watch: {
@@ -697,6 +699,13 @@ export default {
         if(this.arrJK.length > 0) {
           this.dealBoxLogic('K')
         }  
+      }
+    },
+    pointL: {
+      handler(newVal, oldVal) {
+        if(this.arrEI.length > this.nowTiChuNum) {
+          this.dealBoxLogic('L')
+        }
       }
     },
     err1: {
@@ -919,45 +928,47 @@ export default {
     // 拿到模拟id去判断箱子的工艺是否合格
     getUndercutProcess(boxImitateIdVal) {
       this.nowShuXiaid = boxImitateIdVal;
+      this.qualified4Box(boxImitateIdVal, true)
+      this.$message.success(this.nowShuXiaid + '合格！');
       // 获取当前加速器工艺，和系统设置工艺做比较
-      HttpUtil.get('/box/getAccData').then((res)=> {
-        console.log(res)
-        // 给当前箱子赋值acc读取值
-        const index = this.arrCD.findIndex(item => {
-          return item.boxImitateId === boxImitateIdVal
-        })
-        if(index != -1) {
-          // 给箱子设置读取值
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].slRead = res.data.beam;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].glRead = res.data.power;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].skRead = res.data.scanW;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].smplRead = res.data.scanF;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].pfnRead = res.data.pfn;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].nlRead = res.data.energy;
-          this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].sxSpeedRead = res.data.speed;
-        }
-        if(res.data&&JSON.stringify(this.orderMainDy) != '{}' && this.judgeAccData(res.data, boxImitateIdVal)) {
-          this.$message({
-            type: 'success',
-            message: '箱子id' + boxImitateIdVal + '工艺合格！更新状态！'
-          });
-          this.qualified4Box(boxImitateIdVal, true)
-        } else {
-          this.$message({
-            type: 'warning',
-            message: '箱子id' + boxImitateIdVal + '工艺不合格！更新状态！'
-          });
-          this.qualified4Box(boxImitateIdVal, false)
-        }
-      }).catch((err)=> {
-        this.$message({
-          type: 'warning',
-          message: '箱子id' + boxImitateIdVal + '工艺不合格！更新状态！'
-        });
-        this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + boxImitateIdVal + '工艺不合格！数据异常，未读取到加速器数值！', 'log');
-        this.qualified4Box(boxImitateIdVal, false)
-        console.log(err)
-      });
+      // HttpUtil.get('/box/getAccData').then((res)=> {
+      //   console.log(res)
+      //   // 给当前箱子赋值acc读取值
+      //   const index = this.arrCD.findIndex(item => {
+      //     return item.boxImitateId === boxImitateIdVal
+      //   })
+      //   if(index != -1) {
+      //     // 给箱子设置读取值
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].slRead = res.data.beam;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].glRead = res.data.power;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].skRead = res.data.scanW;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].smplRead = res.data.scanF;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].pfnRead = res.data.pfn;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].nlRead = res.data.energy;
+      //     this.arrCD[index].turnsInfoList[this.arrCD[index].numberTurns - 1].sxSpeedRead = res.data.speed;
+      //   }
+      //   if(res.data&&JSON.stringify(this.orderMainDy) != '{}' && this.judgeAccData(res.data, boxImitateIdVal)) {
+      //     this.$message({
+      //       type: 'success',
+      //       message: '箱子id' + boxImitateIdVal + '工艺合格！更新状态！'
+      //     });
+      //     this.qualified4Box(boxImitateIdVal, true)
+      //   } else {
+      //     this.$message({
+      //       type: 'warning',
+      //       message: '箱子id' + boxImitateIdVal + '工艺不合格！更新状态！'
+      //     });
+      //     this.qualified4Box(boxImitateIdVal, false)
+      //   }
+      // }).catch((err)=> {
+      //   this.$message({
+      //     type: 'warning',
+      //     message: '箱子id' + boxImitateIdVal + '工艺不合格！更新状态！'
+      //   });
+      //   this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + boxImitateIdVal + '工艺不合格！数据异常，未读取到加速器数值！', 'log');
+      //   this.qualified4Box(boxImitateIdVal, false)
+      //   console.log(err)
+      // });
     },
     analogOptoelectronics(point) {
       switch (point) {
@@ -993,6 +1004,9 @@ export default {
           break;
         case 'K':
           this.pointK = this.pointK === '1' ? '0' : '1'
+          break;
+        case 'L':
+          this.pointL = this.pointL === '1' ? '0' : '1'
           break;
         default:
           break;
@@ -1402,7 +1416,7 @@ export default {
               this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
             }
           }
-        break;
+          break;
         case 'K':
           if(this.pointK === '1') {
             if(this.arrJK.length > 0) {
@@ -1420,7 +1434,19 @@ export default {
               this.arrJK.splice(0, 1);
             }
           }
-        break;
+          break;
+        case 'L':
+          if(this.pointL === '1') {
+            if(this.arrEI.length > this.nowTiChuNum) {
+              // 判断当前经过L点的是哪个箱子 lastRouteLPoint
+
+              // this.arrJK.push(this.arrEI[this.nowTiChuNum]);
+              // this.arrJK[this.arrJK.length - 1].turnsInfoList[this.arrJK[this.arrJK.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
+              // this.arrEI.splice(this.nowTiChuNum,1);
+              // this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
+            }
+          }
+          break;
         default:
           break;
       }
@@ -1545,8 +1571,6 @@ export default {
       this.enteringPonitA = false;
       // 是否正在进入B点
       this.enteringPonitB = false;
-      this.lastRouteHPoint = '';
-      this.lastRouteFPoint = '';
       this.yujingShow = false,
       this.baojingShow = false,
       this.nowABoxImitateId = '',
@@ -1806,6 +1830,10 @@ export default {
         this.pointF = this.guangDianStatusArr[2];
         this.pointG = this.guangDianStatusArr[1];
         this.pointH = this.guangDianStatusArr[0];
+        this.pointI = this.guangDianStatusArr[15];
+        this.pointJ = this.guangDianStatusArr[14];
+        this.pointK = this.guangDianStatusArr[13];
+        this.pointL = this.guangDianStatusArr[12];
       }
       // --------无PLC测试时，这里以上代码毙掉--------
       this.dianJiStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW72).toString(2), 16);
