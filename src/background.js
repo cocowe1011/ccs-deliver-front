@@ -170,6 +170,10 @@ ipcMain.on('full_screen', function() {
 // 程序启动时判断是否存在报表、日志等本地文件夹，没有就创建
 createFile('batchReport.grf');
 createFile('boxreport.grf');
+// 定义自定义事件
+ipcMain.on('writeLogToLocal', (event, arg) => {
+  fs.appendFile("D://css_temp_data/log/" + ((new Date()).toLocaleDateString() + ".txt").replaceAll('/','-'), arg + '\n', function(err) {});
+})
 });
 
 function conPLC() {
@@ -267,6 +271,19 @@ function createFile(fileNameVal) {
     }
   }
 
+  const destinationLogPath = 'D://css_temp_data/log'; // 目标文件夹的路径
+
+  // 创建日志的文件夹
+  if (!fs.existsSync(destinationLogPath)) {
+    try {
+      fs.mkdirSync(destinationLogPath, { recursive: true });
+      console.log('目标文件夹已成功创建');
+    } catch (err) {
+      console.error('创建目标文件夹时出现错误：', err);
+      return;
+    }
+  }
+
   // 检查目标文件是否已经存在
   if (fs.existsSync(destinationFilePath)) {
     console.log('目标文件已存在，跳过复制操作');
@@ -295,9 +312,9 @@ var variables = {
   DBW20: 'DB101,INT20', // 单独启动105
   DBW22: 'DB101,INT22', // 纸箱宽度
   DBW24: 'DB101,INT24', // 纸箱长度
-  DBW26: 'DB101,INT26', // 不允许上货
+  DBW26: 'DB101,INT26', // 锁定上货电机
   DBW34: 'DB101,INT34', // 扫码信息不一致报警
-  DBW36: 'DB101,INT36', // 允许上货
+  DBW38: 'DB101,INT38', // 下货报警
   DBW40: 'DB101,DBW40', // 发送自动居中信号
   DBW60: 'DB101,INT60', // 看门狗心跳
   DBW62: 'DB101,INT62', // 输送系统自动运行
@@ -312,12 +329,21 @@ var variables = {
 };
 
 // 给PLC写值
-function writeValuesToPLC(add, values) {
-  // console.log(add)
-  // console.log(values)
+async function writeValuesToPLC(add, values) {
   // nodes7 代码
   conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-  // console.log(add +','+values)
+  await delay(50)
+  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
+  await delay(60)
+  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
+  await delay(40)
+  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
+  await delay(30)
+  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function valuesWritten(anythingBad) {

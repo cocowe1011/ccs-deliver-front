@@ -351,20 +351,19 @@ export default {
       // DB101.DBW8 启动输送线
       ipcRenderer.send('writeValuesToPLC', 'DBW8', 1);
       await this.delay(50)
-      console.log(obj.revertFlag)
       // 翻转&回流
-      if(obj.revertFlag === '翻转') {
-        // DB101.DBW12 翻转
-        ipcRenderer.send('writeValuesToPLC', 'DBW12', 1);
-        await this.delay(50)
-        ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
-      }  else {
-        // DB101.DBW14 回流模式
-        ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
-        await this.delay(50)
-        ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
-      }
-      await this.delay(50)
+      // if(obj.revertFlag === '翻转') {
+      //   // DB101.DBW12 翻转
+      //   ipcRenderer.send('writeValuesToPLC', 'DBW12', 1);
+      //   await this.delay(50)
+      //   ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
+      // }  else {
+      //   // DB101.DBW14 回流模式
+      //   ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
+      //   await this.delay(50)
+      //   ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
+      // }
+      // await this.delay(50)
       // DB101.DBW22 纸箱宽度
       ipcRenderer.send('writeValuesToPLC', 'DBW22', Number(obj.boxWidth));
       await this.delay(50)

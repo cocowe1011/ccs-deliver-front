@@ -601,7 +601,7 @@ export default {
                 this.banLoadStatus = false; // 隐藏禁止上货图标
                 this.judgeBanLoadBoxImitateId = ''
                 // 给PLC发送允许上货命令
-                ipcRenderer.send('writeValuesToPLC', 'DBW36', 1);
+                ipcRenderer.send('writeValuesToPLC', 'DBW26', 0);
               }
             }
             // 当更换第二批次的第一箱进到达C时，输出一个自动调节居中机构信号。设备A-C回停机自动等待居中机构调整完再启动进入CD队列。
@@ -795,6 +795,8 @@ export default {
       if(type == 'log') {
         // 生成日志
         this.logArr.push({text: msg})
+        // 同时往本地写日志
+        ipcRenderer.send('writeLogToLocal', msg);
         this.$nextTick(() => {
           this.scrollToBottom();
         });
@@ -1284,14 +1286,15 @@ export default {
           // 更新进入E点时间
           this.arrDE[0].turnsInfoList[this.arrDE[0].numberTurns - 1].passETime = moment().format('YYYY-MM-DD HH:mm:ss');
           if(this.arrDE[0].qualified === '0') {
-            // 执行剔除命令
-            ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物不合格！执行剔除命令！', 'log');
-            // 给箱子标记剔除标识
-            this.arrDE[0].tichuFlag = true;
+            // 执行剔除命令，翻转的箱子在此发送剔除信号
+            if(this.orderMainDy.revertFlag == '翻转') {
+              ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDE[0].boxImitateId + '经过E点,货物不合格！执行剔除命令！', 'log');
+              // 给箱子标记剔除标识
+              this.arrDE[0].tichuFlag = true;
+            }
           } else {
-            ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
-            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！', 'log');
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！', 'log');
 
             // 合格需要判断是回流、翻转、还是下货。判断是否符合下货条件。
             if (this.arrDE[0].numberTurns >= this.orderMainDy.numberTurns) {
@@ -1299,17 +1302,14 @@ export default {
               this.yujingShow = true;
               // 发送下货指令
               ipcRenderer.send('writeValuesToPLC', 'DBW16', 1);
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！符合下货条件，执行下货命令！', 'log');
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！符合下货条件，执行下货命令！', 'log');
               // 给箱子标记下货标识
               this.arrDE[0].xiahuoFlag = true;
             } else {
               // 如果是翻转进入GH队列，不翻转进入JK队列
               if(this.orderMainDy.revertFlag == '翻转') {
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！执行翻转命令！', 'log');
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！执行翻转命令！', 'log');
                 ipcRenderer.send('writeValuesToPLC', 'DBW12', 1);
-              } else {
-                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrDE[0].boxImitateId + '经过E点,货物合格！执行回流命令！', 'log');
-                ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
               }
             }
           }
@@ -1439,16 +1439,55 @@ export default {
           if(this.pointL === '1') {
             if(this.arrEI.length > this.nowTiChuNum) {
               // 判断当前经过L点的是哪个箱子 lastRouteLPoint
-
-              // this.arrJK.push(this.arrEI[this.nowTiChuNum]);
-              // this.arrJK[this.arrJK.length - 1].turnsInfoList[this.arrJK[this.arrJK.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              // this.arrEI.splice(this.nowTiChuNum,1);
-              // this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrJK[this.arrJK.length - 1].boxImitateId + '经过J点，扫码信息：' + this.arrJK[this.arrJK.length - 1].loadScanCode, 'log');
+              if(this.lastRouteLPoint === '') { // 说明物品第一次经过E点，直接取DG数组的第一个元素
+                this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '经过L点，扫码信息：' + this.arrEI[this.nowTiChuNum].loadScanCode, 'log');
+                this.lastRouteLPoint = this.arrEI[this.nowTiChuNum].boxImitateId;
+                this.judgeLMethod(this.nowTiChuNum);
+              } else {
+                // 查找EI数组，lastRouteEPoint的元素，那么下一个必定是此时经过E点的元素
+                const indexLast = this.arrEI.findIndex(item => {
+                  return item.boxImitateId === this.lastRouteLPoint
+                })
+                if(indexLast != -1) {
+                  // 找到了，lastRouteEPoint的下一个元素必定是经过E点的元素
+                  // 如果找到的元素是this.arrDG的最后一个元素，则下一个元素就是第一个元素
+                  if(indexLast === (this.arrEI.length - 1)) {
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '经过L点，扫码信息：' + this.arrEI[this.nowTiChuNum].loadScanCode, 'log');
+                    this.lastRouteLPoint = this.arrEI[this.nowTiChuNum].boxImitateId;
+                    this.judgeLMethod(this.nowTiChuNum);
+                  } else {
+                    this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[indexLast + 1].boxImitateId + '经过L点，扫码信息：' + this.arrEI[indexLast + 1].loadScanCode, 'log');
+                    this.lastRouteLPoint = this.arrEI[indexLast + 1].boxImitateId;
+                    this.judgeLMethod(indexLast + 1);
+                  }
+                } else {
+                  // 找不到，队列第一个肯定就是经过E点的元素
+                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '经过L点，扫码信息：' + this.arrEI[this.nowTiChuNum].loadScanCode, 'log');
+                  this.lastRouteLPoint = this.arrEI[this.nowTiChuNum].boxImitateId;
+                  this.judgeLMethod(this.nowTiChuNum);
+                }
+              }
             }
           }
           break;
         default:
           break;
+      }
+    },
+    judgeLMethod(index) {
+      if(this.arrEI[index].qualified === '0') {
+        // 执行剔除命令，翻转的箱子在此发送剔除信号
+        if(this.orderMainDy.revertFlag != '翻转') {
+          ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
+          this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[index].boxImitateId + '经过L点,货物不合格！执行剔除命令！', 'log');
+          // 给箱子标记剔除标识
+          this.arrEI[index].tichuFlag = true;
+        }
+      } else {
+        if(this.orderMainDy.revertFlag != '翻转') {
+          this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[index].boxImitateId + '经过L点,货物合格！执行回流命令！', 'log');
+          ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
+        }
       }
     },
     closeDynamicGraphShow() {
@@ -1536,7 +1575,7 @@ export default {
         childElement.style.transform = '';
       }
     },
-    clearAllData() {
+    async clearAllData() {
       // 当前上货数
       this.nowInNum = 0;
       // 当前下货数
@@ -1571,23 +1610,63 @@ export default {
       this.enteringPonitA = false;
       // 是否正在进入B点
       this.enteringPonitB = false;
-      this.yujingShow = false,
-      this.baojingShow = false,
-      this.nowABoxImitateId = '',
-      this.nowEBoxImitateId = '',
-      this.nowShuXiaid = '', // 当前束下ID 清空
-      this.nowTiChuNum = 0, // 当前剔除的数量，清空
-      this.beginCountNum = 0, // 模拟id开始数，清空
-      this.logArr = [],
-      this.banLoadStatus = false, // 是否禁止上货
-      this.judgeBanLoadBoxImitateId = '', // 到达判断禁止上货点位后，需要判断的箱子id
-      this.ifNextPassABoxIsFirst = true, // 刚开始时，第一个经过A点的箱子一定是第一个
-      this.lastNewBoxPassABoxImitateId = '' // 新增的箱子，最后一个经过A点的模拟Id
+      this.yujingShow = false;
+      this.baojingShow = false;
+      this.nowABoxImitateId = '';
+      this.nowEBoxImitateId = '';
+      this.nowShuXiaid = ''; // 当前束下ID 清空
+      this.nowTiChuNum = 0; // 当前剔除的数量，清空
+      this.beginCountNum = 0; // 模拟id开始数，清空
+      this.logArr = [];
+      this.errorLogArr = []; // PLC报警日志
+      this.logNotReadNumber = 0; // 日志未读数量
+      this.errorLogNotReadNumber = 0; // 错误日志未读数量
+      this.banLoadStatus = false; // 是否禁止上货
+      this.judgeBanLoadBoxImitateId = ''; // 到达判断禁止上货点位后，需要判断的箱子id
+      this.ifNextPassABoxIsFirst = true; // 刚开始时，第一个经过A点的箱子一定是第一个
+      this.lastNewBoxPassABoxImitateId = ''; // 新增的箱子，最后一个经过A点的模拟Id
       // 清空上料固定扫码
       this.loadScanCode = '';
       // 清空迷宫出口固定扫码
       this.labyrinthScanCode = '';
+      // ****************************
+      // 是否正在进入E点
+      this.enteringPonitE = false;
+      // 是否正在进入C点
+      this.enteringPonitC = false;
+      // 上料固定扫码(实时读PLC的码)
+      this.loadScanCodeTemp = '';
+      // 迷宫出口固定扫码(实时读PLC的码)
+      this.labyrinthScanCodeTemp = '';
+      this.timers = {};
+      this.nowLoadingBatch = 0;
+      this.isSendCenter = false;
+      this.lastRouteLPoint = ''
+      // 复位PLC状态
+      // 复位翻转命令
+      ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
+      await this.delay(50)
+      // 复位回流命令
+      ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
+      await this.delay(50)
+      // 复位下货命令
+      ipcRenderer.send('writeValuesToPLC', 'DBW16', 0);
+      await this.delay(50)
+      // 复位剔除命令
+      ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
+      await this.delay(50)
+      // 允许上货
+      ipcRenderer.send('writeValuesToPLC', 'DBW26', 0);
+      await this.delay(50)
+      // 复位下货报警
+      ipcRenderer.send('writeValuesToPLC', 'DBW38', 0);
+      await this.delay(50)
+      // 复位居中命令
+      ipcRenderer.send('writeValuesToPLC', 'DBW40', 0);
       this.$message.success('全线清空成功!')
+    },
+    delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     },
     getConfig() {
       // 查询配置
