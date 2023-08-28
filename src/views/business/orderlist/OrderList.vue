@@ -344,37 +344,19 @@ export default {
       });
     },
     async writeValuesToPLC(obj) {
-      // ipcRenderer.send('writeValuesToPLC', 'DBW6', 1);
       // DB101.DBW2 加速器设定输送速度
       ipcRenderer.send('writeValuesToPLC', 'DBW2', Number(obj.sxSpeedSet));
-      await this.delay(50)
       // DB101.DBW8 启动输送线
       ipcRenderer.send('writeValuesToPLC', 'DBW8', 1);
-      await this.delay(50)
-      // 翻转&回流
-      // if(obj.revertFlag === '翻转') {
-      //   // DB101.DBW12 翻转
-      //   ipcRenderer.send('writeValuesToPLC', 'DBW12', 1);
-      //   await this.delay(50)
-      //   ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
-      // }  else {
-      //   // DB101.DBW14 回流模式
-      //   ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
-      //   await this.delay(50)
-      //   ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
-      // }
-      // await this.delay(50)
+      // 启动要将停止信息清零
+      ipcRenderer.send('writeValuesToPLC', 'DBW10', 0);
       // DB101.DBW22 纸箱宽度
       ipcRenderer.send('writeValuesToPLC', 'DBW22', Number(obj.boxWidth));
-      await this.delay(50)
       // DB101.DBW24 纸箱长度
-      console.log(Number(obj.boxLength))
       ipcRenderer.send('writeValuesToPLC', 'DBW24', Number(obj.boxLength));
     },
-    delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    },
     stop(obj, flag) {
+      ipcRenderer.send('writeValuesToPLC', 'DBW8', 0);
       ipcRenderer.send('writeValuesToPLC', 'DBW10', 1);
       this.nowRunOrderId = '';
       if(flag) {

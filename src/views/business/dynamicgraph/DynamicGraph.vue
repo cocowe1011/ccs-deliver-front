@@ -206,7 +206,7 @@
               <div class='star' v-show="pointD == '1'"></div>
               <div class="pointText">D</div>
             </div>
-            <div class="guangdian" style="top: 391px;right: 667px;" @click="analogOptoelectronics('E')">
+            <div class="guangdian" style="top: 419px;right: 667px;" @click="analogOptoelectronics('E')">
               <div class='star' v-show="pointE == '1'"></div>
               <div class="pointText">E</div>
             </div>
@@ -237,6 +237,10 @@
             <div class="guangdian" style="right: 664px;top: 545px;" @click="analogOptoelectronics('L')">
               <div class='star' v-show="pointL == '1'"></div>
               <div class="pointText">L</div>
+            </div>
+            <div class="guangdian" style="top: 360px;right: 667px;" @click="analogOptoelectronics('M')">
+              <div class='star' v-show="pointM == '1'"></div>
+              <div class="pointText">M</div>
             </div>
             <!-- 电机状态 -->
             <div v-show="false" :class="['dianji', dianJiStatusArr[7] == '1' ? 'dianji-active' : '']" style="top: 640px;right: 133px;">100#电机</div>
@@ -418,6 +422,7 @@ export default {
       pointJ: '0',
       pointK: '0',
       pointL: '0',
+      pointM: '0',
       // 控制拖动传送带抽屉弹窗是否显示和隐藏
       drawer: false,
       // 当前点击的传送带区域内的箱子列表，一个中间变量
@@ -608,8 +613,12 @@ export default {
             if(this.nowLoadingBatch == 2 && this.arrBC[0].boxImitateId == this.judgeBanLoadBoxImitateId && !this.isSendCenter) {
               this.isSendCenter = true
               this.$message.success('发送自动调节居中机构信号！')
-              // 给PLC发送禁止上货指令
+              // 复位居中命令
               ipcRenderer.send('writeValuesToPLC', 'DBW40', 1);
+              // 一秒后恢复
+              setTimeout(() => {
+                ipcRenderer.send('writeValuesToPLC', 'DBW40', 0);
+              }, 1000);
             }
           }
         } else if(this.enteringPonitC && newVal === '0' && oldVal === '1') { // 货物走出c点
@@ -644,6 +653,9 @@ export default {
           }
         } else if(this.enteringPonitE && newVal === '0' && oldVal === '1') { // 货物走出B点
           this.$message.warning('货物走出E点')
+          ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
+          ipcRenderer.send('writeValuesToPLC', 'DBW16', 0);
+          ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
           this.enteringPonitE = false
           if(this.arrDE.length > 0) {
             // 走出E点，读码
@@ -704,7 +716,24 @@ export default {
     pointL: {
       handler(newVal, oldVal) {
         if(this.arrEI.length > this.nowTiChuNum) {
-          this.dealBoxLogic('L')
+          if(!this.enteringPonitL && newVal === '1' && oldVal === '0') {
+            this.enteringPonitL = true
+            this.dealBoxLogic('L')
+          } else if(this.enteringPonitL && newVal === '0' && oldVal === '1') {
+            this.enteringPonitL = false
+            ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
+            ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
+          } else {
+            // this.enteringPonitL = true && newVal === '1'
+            // this.enteringPonitL = false && newVal === '0'
+            if(newVal === '1') {
+              this.enteringPonitL = true
+            } else {
+              this.enteringPonitL = false
+            }
+            // 先暂定报警吧，因为肯定不会出现这种情况，出现了视为异常，不做任何处理
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 异常！程序走到一个不该走到的地方！当前数据（进入L点状态监控值）：' + this.enteringPonitL + "。收到值：" + newVal + "改变值：" + oldVal + "。", 'error')
+          }
         }
       }
     },
@@ -1009,6 +1038,9 @@ export default {
           break;
         case 'L':
           this.pointL = this.pointL === '1' ? '0' : '1'
+          break;
+        case 'M':
+          this.pointM = this.pointM === '1' ? '0' : '1'
           break;
         default:
           break;
@@ -1354,7 +1386,7 @@ export default {
               this.arrGH.push(this.arrEI[this.nowTiChuNum]);
               this.arrGH[this.arrGH.length - 1].turnsInfoList[this.arrGH[this.arrGH.length - 1].numberTurns - 1].passGTime = moment().format('YYYY-MM-DD HH:mm:ss');
               this.arrEI.splice(this.nowTiChuNum,1);
-              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过F点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
+              this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrGH[this.arrGH.length - 1].boxImitateId + '经过G点，扫码信息：' + this.arrGH[this.arrGH.length - 1].loadScanCode, 'log');
             }
           }
           break;
@@ -1485,8 +1517,14 @@ export default {
         }
       } else {
         if(this.orderMainDy.revertFlag != '翻转') {
-          this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[index].boxImitateId + '经过L点,货物合格！执行回流命令！', 'log');
-          ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
+          if(this.arrEI[index].numberTurns >= this.orderMainDy.numberTurns) {
+            // 说明该下货没下货，执行剔除命令
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[index].boxImitateId + '经过L点,检测到该货物应该下货但未下货，执行剔除命令！', 'log');
+            ipcRenderer.send('writeValuesToPLC', 'DBW18', 1);
+          } else {
+            this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + '货物' + this.arrEI[index].boxImitateId + '经过L点,货物合格！执行回流命令！', 'log');
+            ipcRenderer.send('writeValuesToPLC', 'DBW14', 1);
+          }
         }
       }
     },
@@ -1515,6 +1553,8 @@ export default {
           break;
         case 'run':
           ipcRenderer.send('writeValuesToPLC', 'DBW8', 1);
+          ipcRenderer.send('writeValuesToPLC', 'DBW6', 0);
+          ipcRenderer.send('writeValuesToPLC', 'DBW10', 0);
           this.$notify({
             title: '指令发送成功！',
             message: '全线启动指令已成功发送！',
@@ -1632,6 +1672,8 @@ export default {
       // ****************************
       // 是否正在进入E点
       this.enteringPonitE = false;
+      // 是否正在进入L点
+      this.enteringPonitL = false;
       // 是否正在进入C点
       this.enteringPonitC = false;
       // 上料固定扫码(实时读PLC的码)
@@ -1645,28 +1687,19 @@ export default {
       // 复位PLC状态
       // 复位翻转命令
       ipcRenderer.send('writeValuesToPLC', 'DBW12', 0);
-      await this.delay(50)
       // 复位回流命令
       ipcRenderer.send('writeValuesToPLC', 'DBW14', 0);
-      await this.delay(50)
       // 复位下货命令
       ipcRenderer.send('writeValuesToPLC', 'DBW16', 0);
-      await this.delay(50)
       // 复位剔除命令
       ipcRenderer.send('writeValuesToPLC', 'DBW18', 0);
-      await this.delay(50)
       // 允许上货
       ipcRenderer.send('writeValuesToPLC', 'DBW26', 0);
-      await this.delay(50)
       // 复位下货报警
       ipcRenderer.send('writeValuesToPLC', 'DBW38', 0);
-      await this.delay(50)
       // 复位居中命令
       ipcRenderer.send('writeValuesToPLC', 'DBW40', 0);
       this.$message.success('全线清空成功!')
-    },
-    delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
     },
     getConfig() {
       // 查询配置
@@ -1913,6 +1946,7 @@ export default {
         this.pointJ = this.guangDianStatusArr[14];
         this.pointK = this.guangDianStatusArr[13];
         this.pointL = this.guangDianStatusArr[12];
+        this.pointM = this.guangDianStatusArr[11];
       }
       // --------无PLC测试时，这里以上代码毙掉--------
       this.dianJiStatusArr = this.PrefixZero(this.convertToWord(eventData.DBW72).toString(2), 16);

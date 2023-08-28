@@ -96,6 +96,10 @@ app.on('ready', () => {
     if (process.env.NODE_ENV === 'production') {
       conPLC();
     }
+    // setInterval(() => {
+    //   console.log(writeStrArr.toString());
+    // }, 50);
+    // sendHeartToPLC()
   })
   mainWindow.on('maximize', () => {
     mainWindow.webContents.send('mainWin-max', 'max-window')
@@ -214,6 +218,8 @@ function conPLC() {
       conn.addItems('DBW72');
       // 束下前输送速度比
       conn.addItems('DBW76');
+      // E点无货且电机运行
+      conn.addItems('DBW80');
       // 上料固定扫码
       conn.addItems('DBB100');
       // 迷宫出口固定扫码
@@ -223,6 +229,10 @@ function conPLC() {
       setInterval(() => {
         conn.readAllItems(valuesReady);
       }, 50);
+      setInterval(() => {
+        // nodes7 代码
+        conn.writeItems(writeAddArr, writeStrArr, valuesWritten);
+      }, 100);
       // 发送心跳
       sendHeartToPLC()
     });
@@ -240,7 +250,7 @@ function sendHeartToPLC() {
         nowValue = 1 - nowValue;
     }
     times++;
-    conn.writeItems('DBW0', nowValue, valuesWritten);
+    writeValuesToPLC('DBW0', nowValue);
   }, 200); // 每200毫秒执行一次交替
 }
 
@@ -324,26 +334,65 @@ var variables = {
   DBW70: 'DB101,INT70',
   DBW72: 'DB101,INT72',
   DBW76: 'DB101,INT76', // 束下前输送速度比
+  DBW80: 'DB101,INT80', // E点没货且电机运行清空命令
   DBB100: 'DB101,C100.30',
   DBB130: 'DB101,C130.30'
 };
 
+var writeStrArr = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+var writeAddArr = ['DBW0', 'DBW2', 'DBW4', 'DBW6', 'DBW8', 'DBW10', 'DBW12', 'DBW14', 'DBW16', 'DBW18', 'DBW22', 'DBW24', 'DBW26', 'DBW38', 'DBW40']; 
+
 // 给PLC写值
 async function writeValuesToPLC(add, values) {
-  // nodes7 代码
-  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-  await delay(50)
-  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-  await delay(60)
-  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-  await delay(40)
-  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-  await delay(30)
-  conn.writeItems(add, values, valuesWritten); // This writes a single boolean item (one bit) to true
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  switch (add) {
+    case 'DBW0':
+      writeStrArr[0] = values;
+      break;
+    case 'DBW2':
+      writeStrArr[1] = values;
+      break;
+    case 'DBW4':
+      writeStrArr[2] = values;
+      break;
+    case 'DBW6':
+      writeStrArr[3] = values;
+      break;
+    case 'DBW8':
+      writeStrArr[4] = values;
+      break;
+    case 'DBW10':
+      writeStrArr[5] = values;
+      break;
+    case 'DBW12':
+      writeStrArr[6] = values;
+      break;
+    case 'DBW14':
+      writeStrArr[7] = values;
+      break;
+    case 'DBW16':
+      writeStrArr[8] = values;
+      break;
+    case 'DBW18':
+      writeStrArr[9] = values;
+      break;
+    case 'DBW22':
+      writeStrArr[10] = values;
+      break;
+    case 'DBW24':
+      writeStrArr[11] = values;
+      break;
+    case 'DBW26':
+      writeStrArr[12] = values;
+      break;
+    case 'DBW38':
+      writeStrArr[13] = values;
+      break;
+    case 'DBW40':
+      writeStrArr[14] = values;
+      break;
+    default:
+      break;
+  }
 }
 
 function valuesWritten(anythingBad) {
