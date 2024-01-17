@@ -133,9 +133,9 @@ app.on('ready', () => {
     setInterval(() => {
       if(mainWindow) {
         if(revert) {
-          mainWindow.webContents.send('receivedMsg', {DBW60:0,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19})
+          mainWindow.webContents.send('receivedMsg', {DBW60:0,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBW74: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19}, writeStrArr.toString())
         } else {
-          mainWindow.webContents.send('receivedMsg', {DBW60:1,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19})
+          mainWindow.webContents.send('receivedMsg', {DBW60:1,DBW62:0, DBW68:35580,DBW70:512,DBW72: -1793,DBW74: -1793,DBB100:'HF800SR-1-H                   ',DBB130:'83048880004868800784          ',DBW76:19}, writeStrArr.toString())
         }
         revert = !revert;
       }
@@ -208,14 +208,18 @@ function conPLC() {
       conn.addItems('DBW62')
       // 故障信息
       conn.addItems('DBW66')
+      // 故障信息2
+      conn.addItems('DBW86')
       // 输送线不允许加速器写
       conn.addItems('DBW64')
       // 束下实时反馈速度
       conn.addItems('DBW68')
       // 关键点光电信号
       conn.addItems('DBW70');
-      // 电机运行信号
+      // 电机运行信号1
       conn.addItems('DBW72');
+      // 电机运行信号2
+      conn.addItems('DBW74');
       // 束下前输送速度比
       conn.addItems('DBW76');
       // E点无货且电机运行
@@ -224,6 +228,10 @@ function conPLC() {
       conn.addItems('DBB100');
       // 迷宫出口固定扫码
       conn.addItems('DBB130');
+      // H点数值反馈
+      conn.addItems('DBW82');
+      // K点数值反馈
+      conn.addItems('DBW84');
       
       // 读DBW6和DBW62
       setInterval(() => {
@@ -326,21 +334,28 @@ var variables = {
   DBW34: 'DB101,INT34', // 扫码信息不一致报警
   DBW38: 'DB101,INT38', // 下货报警
   DBW40: 'DB101,DBW40', // 发送自动居中信号
+  DBW42: 'DB101,INT42', // 故障复位
+  DBW44: 'DB101,INT44', // 合格箱子被剔除报警
+  DBW46: 'DB101,INT46', // 托盘模式
   DBW60: 'DB101,INT60', // 看门狗心跳
   DBW62: 'DB101,INT62', // 输送系统自动运行
-  DBW64: 'DB101,INT64',
+  DBW64: 'DB101,INT64', // 输送线不允许加速器写
   DBW66: 'DB101,INT66', // 故障信息
-  DBW68: 'DB101,INT68',
-  DBW70: 'DB101,INT70',
-  DBW72: 'DB101,INT72',
+  DBW68: 'DB101,INT68', // 束下链板实时速度
+  DBW70: 'DB101,INT70', // 光电信号
+  DBW72: 'DB101,INT72', // 电机运行信号1
+  DBW74: 'DB101,INT74', // 电机运行信号2
   DBW76: 'DB101,INT76', // 束下前输送速度比
   DBW80: 'DB101,INT80', // E点没货且电机运行清空命令
+  DBW82: 'DB101,INT82', // H点数值反馈
+  DBW84: 'DB101,INT84', // K点数值反馈
+  DBW86: 'DB101,INT86', // 故障信息2
   DBB100: 'DB101,C100.30',
   DBB130: 'DB101,C130.30'
 };
 
-var writeStrArr = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
-var writeAddArr = ['DBW0', 'DBW2', 'DBW4', 'DBW6', 'DBW8', 'DBW10', 'DBW12', 'DBW14', 'DBW16', 'DBW18', 'DBW22', 'DBW24', 'DBW26', 'DBW38', 'DBW40']; 
+var writeStrArr = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var writeAddArr = ['DBW0', 'DBW2', 'DBW4', 'DBW6', 'DBW8', 'DBW10', 'DBW12', 'DBW14', 'DBW16', 'DBW18', 'DBW22', 'DBW24', 'DBW26', 'DBW38', 'DBW40', 'DBW42', 'DBW44', 'DBW46']; 
 
 // 给PLC写值
 async function writeValuesToPLC(add, values) {
@@ -390,6 +405,15 @@ async function writeValuesToPLC(add, values) {
     case 'DBW40':
       writeStrArr[14] = values;
       break;
+    case 'DBW42':
+      writeStrArr[15] = values;
+      break;
+    case 'DBW44':
+      writeStrArr[16] = values;
+      break;
+    case 'DBW46':
+      writeStrArr[17] = values;
+      break;
     default:
       break;
   }
@@ -401,8 +425,7 @@ function valuesWritten(anythingBad) {
 
 function valuesReady(anythingBad, values) {
   if (anythingBad) { console.log("SOMETHING WENT WRONG READING VALUES!!!!"); }
-  console.log(values)
-  mainWindow.webContents.send('receivedMsg', values)
+  mainWindow.webContents.send('receivedMsg', values, writeStrArr.toString())
 }
 
 const setAppTray = () => {  
