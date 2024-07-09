@@ -1543,10 +1543,7 @@ export default {
                 // 计算本箱子到达H点的时间（ms）
                 // 计算时间 改为任务管理
                 const times = this.calculateMilliseconds((Number(this.lengthOne)/(Number(this.orderMainDy.sxSpeedSet)  * Number(this.speedOne)) ).toFixed(2), (Number(this.lengthTwo)/(Number(this.orderMainDy.sxSpeedSet)  * Number(this.speedTwo)) ).toFixed(2)) + this.newDelayPointTime;
-                setTimeout(() => {
-                  this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 首箱到达H点！', 'log');
-                  this.judgeIfBoxOnH();
-                }, times);
+                this.startTimerWithDelay(8888, times)
                 this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrDG[0].boxImitateId + '，是本次上货的第一箱，经过G点，束下设定速度：' + this.orderMainDy.sxSpeedSet + '，X1长度：' + this.lengthOne + '，V1速度比：' + this.speedOne + '，X2长度：'+ this.lengthTwo +'，V2速度比：' + this.speedTwo + '，到达H点延迟时间：' + this.newDelayPointTime + '计算到达H点共需时间：' + times, 'log');
               }
               // 把DG队列第一个货物出列，进入GH
@@ -2124,11 +2121,18 @@ export default {
       this.isDelayPointTime = false;
       this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' H点开始延迟结束！', 'log');
     },
+    delayGpoint() {
+      this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 首箱到达H点！', 'log');
+      this.judgeIfBoxOnH();
+    },
     startTimerWithDelay(boxImitateId, delay) {
       const timerId = setTimeout(() => {
         // 执行逻辑,9999代表H点延迟时间，非9999代表B点到束下的计算时间
         if(Number(boxImitateId) === 9999) {
           this.delayHpoint()
+        } else if(Number(boxImitateId) === 8888) {
+          // 执行逻辑,8888代表G点延迟时间，非8888代表B点到束下的计算时间
+          this.delayGpoint()
         } else {
           this.getUndercutProcess(boxImitateId);
         }
