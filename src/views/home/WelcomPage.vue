@@ -1,8 +1,10 @@
 <template>
   <div class="welcome">
     <div>
-      <p class="main-left-user center"> {{ userName }} 您好 </p>
-      <p class="center main-left-title">欢迎使用全自动辐照灭菌输送控制系统V2.0</p>
+      <p class="main-left-user center">{{ userName }} 您好</p>
+      <p class="center main-left-title">
+        欢迎使用全自动辐照灭菌输送控制系统V2.0
+      </p>
       <div class="content">
         <p class="center main-left-content">简单易用 高效稳定</p>
         <p class="center main-left-content">我们将竭诚为您服务</p>
@@ -13,24 +15,21 @@
   </div>
 </template>
 <script>
-const remote = require('electron').remote
+const remote = require('electron').remote;
 export default {
-  name: "WelcomPage",
+  name: 'WelcomPage',
   components: {},
   props: {},
   data() {
     return {
-      userName : remote.getGlobal('sharedObject').userInfo.userName
+      userName: remote.getGlobal('sharedObject').userInfo.userName
     };
   },
   watch: {},
   computed: {},
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
-  }
+  methods: {},
+  created() {},
+  mounted() {}
 };
 </script>
 <style lang="less" scoped>
