@@ -454,7 +454,7 @@ const setAppTray = () => {
   const contextMenu = Menu.buildFromTemplate(trayMenuTemplate)
 
   // 设置此托盘图标的悬停提示内容
-  appTray.setToolTip('全自动束下输送系统(ccs)')
+  appTray.setToolTip('全自动辐照灭菌输送控制系统V2.0(ccs)')
 
   // 设置此图标的上下文菜单
   appTray.setContextMenu(contextMenu)
