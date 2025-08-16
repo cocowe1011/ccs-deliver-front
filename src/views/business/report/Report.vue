@@ -356,7 +356,6 @@ export default {
     border-radius: 20px;
     background: rgb(255, 255, 255);
     box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
-    // backdrop-filter: blur(88px);
     .formDiv {
       .card-title {
         height: 30px;

@@ -13,6 +13,14 @@
       @click="testAcc"
       >测试加速器</el-button
     >
+    <el-button
+      type="warning"
+      plain
+      v-show="false"
+      style="position: absolute; z-index: 999; right: 250px; top: 75px"
+      @click="testOptoelectronics"
+      >测试光电A点</el-button
+    >
     <div class="dynamic-left">
       <div class="dynamic-left-top">
         <div>
@@ -213,7 +221,7 @@
               <img src="./img/deng.png" class="fusheguang" v-show="dengShow" />
             </transition>
             <img
-              src="./img/chuansongdai.png"
+              src="./img/chuansongdai.webp"
               style="width: 889.67px; height: 682.66px; margin-top: 60px"
             />
             <div
@@ -719,13 +727,15 @@
             <table>
               <tbody>
                 <tr
-                  v-for="(item, index) in boxArr"
+                  v-for="(item, index) in paginatedBoxArr"
                   class="body-col"
                   :key="index"
                   draggable="true"
-                  @dragstart="dragStart(index)"
+                  @dragstart="dragStart((currentPage - 1) * pageSize + index)"
                 >
-                  <td style="width: 40px">{{ index + 1 }}</td>
+                  <td style="width: 40px">
+                    {{ (currentPage - 1) * pageSize + index + 1 }}
+                  </td>
                   <td style="width: 150px">{{ item.orderNo }}</td>
                   <td style="width: 120px">{{ item.boxImitateId }}</td>
                   <td style="width: 150px">{{ item.loadScanCode }}</td>
@@ -797,6 +807,27 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <!-- 分页组件 -->
+          <div class="pagination-container">
+            <el-pagination
+              background
+              layout="total, prev, pager, next, jumper"
+              :current-page="currentPage"
+              :page-size="pageSize"
+              :total="boxArr.length"
+              @current-change="handlePageChange"
+              small
+            >
+            </el-pagination>
+            <div class="pagination-info">
+              <span
+                >当前显示: {{ (currentPage - 1) * pageSize + 1 }}-{{
+                  Math.min(currentPage * pageSize, boxArr.length)
+                }}
+                / 总计: {{ boxArr.length }} 条</span
+              >
+            </div>
           </div>
           <!-- <orderList id="orderListComp" ref="orderListComp" :visible="visibleOrderList" :add-data="addData" left="210px" top="95px" @changeSearchWindow="changeSearchWindow" @selectOrderItem="selectOrderItem"></orderList> -->
         </div>
@@ -966,6 +997,9 @@ export default {
       traDG: false,
       traGH: false,
       traF: false,
+      // 表格分页相关
+      currentPage: 1,
+      pageSize: 50, // 每页显示50条数据
       // 当前被拖动元素的索引
       dragIndex: '',
       // PLC光电状态数组
@@ -1555,21 +1589,37 @@ export default {
       }
     }
   },
-  computed: {},
+  computed: {
+    // 分页后的表格数据（始终启用分页）
+    paginatedBoxArr() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.boxArr.slice(startIndex, endIndex);
+    },
+    // 总页数
+    totalPages() {
+      return Math.ceil(this.boxArr.length / this.pageSize);
+    }
+  },
   methods: {
     createLog(msg, type) {
       if (type == 'log') {
         // 生成日志
-        this.logArr.push({ text: msg });
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        this.logArr.unshift({ text: msg });
+        // 保持日志数量在合理范围内
+        if (this.logArr.length > 100) {
+          this.logArr.pop();
+        }
         // 如果当前日志在显示的是报警列表，运行日志有新日志要徽标提示
         if (this.logPageFlag == 'error-log') {
           this.logNotReadNumber++;
         }
       } else {
-        this.errorLogArr.push({ text: msg });
+        this.errorLogArr.unshift({ text: msg });
+        // 保持日志数量在合理范围内
+        if (this.errorLogArr.length > 100) {
+          this.errorLogArr.pop();
+        }
         // 如果当前日志在显示的是运行列表，报警日志有新日志要徽标提示
         if (this.logPageFlag == 'error-log') {
           this.errorLogNotReadNumber++;
@@ -1577,22 +1627,6 @@ export default {
       }
       // 同时往本地写日志
       ipcRenderer.send('writeLogToLocal', msg);
-    },
-    scrollToBottom() {
-      const logContainer = this.$refs.logContainer;
-      // logContainer.scrollTop = logContainer.scrollHeight;
-      const tolerance = 120; // 容差值，可以根据需要调整
-      const isNearBottom =
-        logContainer.scrollHeight -
-          logContainer.scrollTop -
-          logContainer.clientHeight <
-        tolerance;
-      if (isNearBottom) {
-        logContainer.scrollTo({
-          top: logContainer.scrollHeight,
-          behavior: 'smooth'
-        });
-      }
     },
     qualified4Box(boxImitateIdVal, status) {
       //判断箱子在哪个队列 AB BC CD DG GH,status为true为合格，false为不合格
@@ -2181,6 +2215,28 @@ export default {
           break;
       }
     },
+    testOptoelectronics() {
+      let count = 0;
+      const maxCount = 3000;
+      const interval = 50; // 50ms
+
+      const timer = setInterval(() => {
+        if (count >= maxCount) {
+          clearInterval(timer);
+          this.$message.success('测试完成！已触发3000次光电A点');
+          return;
+        }
+
+        this.analogOptoelectronics('A');
+        count++;
+      }, interval);
+
+      this.$message.info('开始测试光电A点，将触发3000次，每隔50ms一次');
+    },
+    // 分页change处理
+    handlePageChange(page) {
+      this.currentPage = page;
+    },
     replaceOrderData(orderMain) {
       if (orderMain.orderId === this.orderMainDy.orderId) {
         this.orderMainDy = JSON.parse(JSON.stringify(orderMain));
@@ -2361,6 +2417,8 @@ export default {
       this.traDG = false;
       this.traGH = false;
       this.traF = false;
+      // 重置分页到第一页，避免切换队列后数据不显示
+      this.currentPage = 1;
       switch (transform) {
         case 'AB':
           this.boxArr = this.arrAB;
@@ -3690,13 +3748,13 @@ export default {
       this.dengShow = !this.dengShow;
     }, 1000);
     // 订阅<状态球>eventBus发布的消息
-    EventBus.$on('pushPLCMessage', (eventData) => {
+    ipcRenderer.on('receivedMsg', (event, values, values2) => {
       // --------无PLC测试时，这里以下代码毙掉--------
       // 输送线运行状态
-      this.beltRunStatus = Number(eventData.DBW62);
-      if (Number(eventData.DBW62) == 1) {
+      this.beltRunStatus = Number(values.DBW62);
+      if (Number(values.DBW62) == 1) {
         this.guangDianStatusArr = this.PrefixZero(
-          this.convertToWord(eventData.DBW70).toString(2),
+          this.convertToWord(values.DBW70).toString(2),
           16
         );
         this.pointA = this.guangDianStatusArr[7];
@@ -3710,25 +3768,25 @@ export default {
       }
       // --------无PLC测试时，这里以上代码毙掉--------
       this.dianJiStatusArr = this.PrefixZero(
-        this.convertToWord(eventData.DBW72).toString(2),
+        this.convertToWord(values.DBW72).toString(2),
         16
       );
       this.status104 = this.dianJiStatusArr[3];
       this.status105 = this.dianJiStatusArr[2];
-      this.lightBeamRealTimeSpeed = Number(eventData.DBW68);
-      this.jAreaSpeed = Number(eventData.DBW80);
-      this.kAreaSpeed = Number(eventData.DBW82);
-      this.lAreaSpeed = Number(eventData.DBW84);
+      this.lightBeamRealTimeSpeed = Number(values.DBW68);
+      this.jAreaSpeed = Number(values.DBW80);
+      this.kAreaSpeed = Number(values.DBW82);
+      this.lAreaSpeed = Number(values.DBW84);
       // 上料固定扫码
-      this.loadScanCodeTemp = eventData.DBB100 ?? '';
+      this.loadScanCodeTemp = values.DBB100 ?? '';
       // 迷宫出口固定扫码
-      this.labyrinthScanCodeTemp = eventData.DBB130 ?? '';
+      this.labyrinthScanCodeTemp = values.DBB130 ?? '';
       // 束下输送速度比
-      this.shuxiaSpeedProportion = Number(eventData.DBW76);
+      this.shuxiaSpeedProportion = Number(values.DBW76);
       // 监控报警日志
-      if (eventData.DBW66 != null && eventData.DBW66 != undefined) {
+      if (values.DBW66 != null && values.DBW66 != undefined) {
         this.errorModArr = this.PrefixZero(
-          this.convertToWord(eventData.DBW66).toString(2),
+          this.convertToWord(values.DBW66).toString(2),
           16
         );
         this.err1 = this.errorModArr[7];
@@ -3851,12 +3909,6 @@ export default {
     top: 56px;
     right: 342px;
   }
-  .backgroundimg {
-    background-image: url('./img/chuansongdai.png');
-    background-size: 889.67px 682.66px;
-    background-position: center center;
-    background-repeat: no-repeat;
-  }
   .chuansongpadding {
     box-sizing: border-box;
     .show-data-area {
@@ -3903,7 +3955,6 @@ export default {
         border-radius: 20px;
         background: rgba(246, 247, 251, 0.56);
         box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(88px);
       }
     }
     &-middle {
@@ -3919,7 +3970,6 @@ export default {
         border-radius: 20px;
         background: rgba(246, 247, 251, 0.56);
         box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(88px);
         .img {
           width: 70px;
           height: 70px;
@@ -3962,7 +4012,6 @@ export default {
         border-radius: 20px;
         background: rgba(246, 247, 251, 0.56);
         box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(88px);
         .log-class {
           cursor: pointer;
           height: 25px;
@@ -4041,7 +4090,6 @@ export default {
       border-radius: 20px;
       background: rgba(246, 247, 251, 0.56);
       box-shadow: 0px 60px 90px 0px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(88px);
       background: linear-gradient(
         to right,
         rgba(83, 188, 206, 0.7),
@@ -4208,7 +4256,7 @@ export default {
         }
       }
       .table_list {
-        height: calc(100% - 50px);
+        height: calc(100% - 85px);
         overflow-y: auto;
         tr {
           cursor: pointer;
@@ -4267,6 +4315,33 @@ export default {
     padding: 8px;
     color: #000000;
     border-top: 1px solid #ebebeb;
+  }
+
+  /* 分页组件样式 */
+  .pagination-container {
+    padding: 5px 15px;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid #ebeef5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+    color: #606266;
+    margin-left: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .pagination-container {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pagination-info {
+      margin-left: 0;
+    }
   }
 }
 </style>

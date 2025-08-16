@@ -8,12 +8,12 @@
     >
       <div class="inner">
         <i
-          class="el-icon-check icon"
+          class="el-icon-check"
           style="font-size: 28px; color: #fff"
           v-if="plcStatus"
         ></i>
         <i
-          class="el-icon-close icon"
+          class="el-icon-close"
           style="font-size: 28px; color: #fff"
           v-else
         ></i>
@@ -25,7 +25,6 @@
 
 <script>
 import { ipcRenderer } from 'electron';
-import { EventBus } from '@/utils/EventBus';
 export default {
   name: 'StatusMonitor',
   components: {},
@@ -128,8 +127,6 @@ export default {
   mounted() {
     // receivedMsg接收到消息发送事件通知
     ipcRenderer.on('receivedMsg', (event, values, values2) => {
-      // this.data = this.PrefixZero(values.DBW70.toString(2), 16)
-      EventBus.$emit('pushPLCMessage', values);
       // 处理看门狗心跳
       this.watchDog = values.DBW60;
       this.sendStr = values2;
@@ -180,19 +177,5 @@ export default {
 }
 .offline {
   background-color: #f56c6c !important;
-}
-.icon {
-  animation: icon-animation 2s infinite;
-}
-@keyframes icon-animation {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3);
-  }
-  100% {
-    transform: scale(1);
-  }
 }
 </style>

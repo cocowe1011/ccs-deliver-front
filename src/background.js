@@ -31,6 +31,91 @@ var appTray = null;
 let closeStatus = false;
 var conn = new nodes7();
 var pollingST = null;
+// 记录日志的辅助函数
+function logToFile(message) {
+  const timestamp = new Date().toLocaleString();
+  const logPath =
+    'D://css_temp_data/log/' +
+    new Date().toLocaleDateString().replaceAll('/', '-') +
+    'runlog.txt';
+  fs.appendFile(logPath, `[${timestamp}] ${message}\n`, (err) => {
+    if (err) console.error('Error writing to log file:', err);
+  });
+}
+
+// 日志缓冲相关变量
+let logBuffer = [];
+let logBufferTimer = null;
+const LOG_BUFFER_SIZE = 10; // 缓冲区大小
+const LOG_FLUSH_INTERVAL = 5000; // 5秒刷新一次
+
+// 优化的日志写入函数
+function writeLogToLocalOptimized(logData) {
+  // 添加时间戳
+  const timestamp = new Date().toLocaleString();
+  const logEntry = `[${timestamp}] ${logData}\n`;
+
+  // 添加到缓冲区
+  logBuffer.push(logEntry);
+
+  // 如果缓冲区满了，立即刷新
+  if (logBuffer.length >= LOG_BUFFER_SIZE) {
+    flushLogBuffer();
+  } else if (!logBufferTimer) {
+    // 设置定时器，定期刷新缓冲区
+    logBufferTimer = setTimeout(() => {
+      flushLogBuffer();
+    }, LOG_FLUSH_INTERVAL);
+  }
+}
+
+// 刷新日志缓冲区
+function flushLogBuffer() {
+  if (logBuffer.length === 0) return;
+
+  const logPath =
+    'D://css_temp_data/log/' +
+    (new Date().toLocaleDateString() + '.txt').replaceAll('/', '-');
+
+  // 确保日志目录存在
+  const logDir = 'D://css_temp_data/log';
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  // 检查日志文件大小，如果超过10MB则进行轮转
+  try {
+    if (fs.existsSync(logPath)) {
+      const stats = fs.statSync(logPath);
+      const fileSizeInMB = stats.size / (1024 * 1024);
+      if (fileSizeInMB > 10) {
+        // 创建备份文件
+        const backupPath = logPath.replace('.txt', `_${Date.now()}.txt`);
+        fs.renameSync(logPath, backupPath);
+        console.log(`日志文件过大，已轮转到: ${backupPath}`);
+      }
+    }
+  } catch (error) {
+    console.error('检查日志文件大小时出错:', error);
+  }
+
+  // 批量写入日志
+  const logContent = logBuffer.join('');
+  fs.appendFile(logPath, logContent, (err) => {
+    if (err) {
+      console.error('Error writing to log file:', err);
+    }
+  });
+
+  // 清空缓冲区
+  logBuffer = [];
+
+  // 清除定时器
+  if (logBufferTimer) {
+    clearTimeout(logBufferTimer);
+    logBufferTimer = null;
+  }
+}
 // electron 开启热更新
 try {
   require('electron-reloader')(module, {});
@@ -40,6 +125,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// 应用退出时确保所有日志都被写入
+app.on('before-quit', () => {
+  flushLogBuffer();
 });
 
 global.sharedObject = {
@@ -200,13 +290,74 @@ app.on('ready', () => {
   }
   setAppTray();
   if (process.env.NODE_ENV === 'production') {
-    // 启动Java进程
-    spawn(path.join(__static, './jre', 'jre1.8.0_251', 'bin', 'java'), [
-      '-Xmx4096m',
-      '-Xms4096m',
-      '-jar',
-      path.join(__static, './jarlib', 'ccs-deliver-middle.jar')
-    ]);
+    try {
+      const javaPath = path.join(
+        __static,
+        './jre',
+        'jre1.8.0_251',
+        'bin',
+        'java'
+      );
+      const jarPath = path.join(__static, './jarlib', 'ccs-deliver-middle.jar');
+
+      // 优化的Java启动参数
+      const javaOpts = [
+        // 内存设置
+        '-Xmx4096m', // 最大堆内存
+        '-Xms4096m', // 初始堆内存
+        '-XX:MaxMetaspaceSize=512m', // 最大元空间大小
+        '-XX:MetaspaceSize=256m', // 初始元空间大小
+
+        // GC设置
+        '-XX:+UseG1GC', // 使用G1垃圾收集器
+        '-XX:MaxGCPauseMillis=200', // 最大GC停顿时间
+        '-XX:+HeapDumpOnOutOfMemoryError', // 内存溢出时导出堆转储
+        '-XX:HeapDumpPath=D://css_temp_data/dump', // 堆转储文件路径
+
+        // 性能优化
+        '-XX:+DisableExplicitGC', // 禁止显式GC调用
+        '-XX:+UseStringDeduplication', // 开启字符串去重
+        '-XX:+OptimizeStringConcat', // 优化字符串连接
+
+        // 监控和调试
+        '-XX:+PrintGCDetails', // 打印GC详细信息
+        '-XX:+PrintGCDateStamps', // 打印GC时间戳
+        '-Xloggc:D://css_temp_data/log/gc.log', // GC日志文件
+        '-XX:+HeapDumpBeforeFullGC', // Full GC前生成堆转储
+        '-XX:+PrintGCApplicationStoppedTime', // 打印应用暂停时间
+
+        // 错误处理
+        '-XX:+ExitOnOutOfMemoryError', // 发生OOM时退出
+        '-XX:ErrorFile=D://css_temp_data/log/hs_err_%p.log', // JVM错误日志
+        // 编码
+        '-Dfile.encoding=UTF-8',
+        // 应用参数
+        '-jar',
+        jarPath
+      ];
+      // 确保日志目录存在
+      const logDir = 'D://css_temp_data/log';
+      const dumpDir = 'D://css_temp_data/dump';
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+      if (!fs.existsSync(dumpDir)) {
+        fs.mkdirSync(dumpDir, { recursive: true });
+      }
+
+      logToFile(`启动Java进程，使用参数: ${javaOpts.join(' ')}`);
+      const process = spawn(javaPath, javaOpts);
+
+      process.on('error', (err) => {
+        logToFile(`Java程序启动错误: ${err.message}`);
+      });
+
+      process.on('exit', (code, signal) => {
+        logToFile(`Java程序退出，退出码: ${code}, 信号: ${signal}`);
+      });
+    } catch (error) {
+      logToFile(`Java程序启动异常: ${error.message}`);
+    }
   }
 
   // 开发者工具
@@ -227,14 +378,9 @@ app.on('ready', () => {
   // 程序启动时判断是否存在报表、日志等本地文件夹，没有就创建
   createFile('batchReport.grf');
   createFile('boxreport.grf');
-  // 定义自定义事件
+  // 定义自定义事件 - 优化后的日志写入
   ipcMain.on('writeLogToLocal', (event, arg) => {
-    fs.appendFile(
-      'D://css_temp_data/log/' +
-        (new Date().toLocaleDateString() + '.txt').replaceAll('/', '-'),
-      arg + '\n',
-      function (err) {}
-    );
+    writeLogToLocalOptimized(arg);
   });
   // 同步映射加速器数据
   synAccData();
@@ -463,69 +609,11 @@ var writeAddArr = [
 
 // 给PLC写值
 function writeValuesToPLC(add, values) {
-  switch (add) {
-    case 'DBW0':
-      writeStrArr[0] = values;
-      break;
-    case 'DBW2':
-      writeStrArr[1] = values;
-      break;
-    case 'DBW4':
-      writeStrArr[2] = values;
-      break;
-    case 'DBW6':
-      writeStrArr[3] = values;
-      break;
-    case 'DBW8':
-      writeStrArr[4] = values;
-      break;
-    case 'DBW10':
-      writeStrArr[5] = values;
-      break;
-    case 'DBW12':
-      writeStrArr[6] = values;
-      break;
-    case 'DBW14':
-      writeStrArr[7] = values;
-      break;
-    case 'DBW16':
-      writeStrArr[8] = values;
-      break;
-    case 'DBW18':
-      writeStrArr[9] = values;
-      break;
-    case 'DBW22':
-      writeStrArr[10] = values;
-      break;
-    case 'DBW24':
-      writeStrArr[11] = values;
-      break;
-    case 'DBW26':
-      writeStrArr[12] = values;
-      break;
-    case 'DBW34':
-      writeStrArr[13] = values;
-      break;
-    case 'DBW36':
-      writeStrArr[14] = values;
-      break;
-    case 'DBW38':
-      writeStrArr[15] = values;
-      break;
-    case 'DBW40':
-      writeStrArr[16] = values;
-      break;
-    case 'DBW42':
-      writeStrArr[17] = values;
-      break;
-    case 'DBW44':
-      writeStrArr[18] = values;
-      break;
-    case 'DBW46':
-      writeStrArr[19] = values;
-      break;
-    default:
-      break;
+  const index = writeAddArr.indexOf(add);
+  if (index !== -1) {
+    writeStrArr[index] = values;
+  } else {
+    console.warn(`Address ${add} not found in writeAddArr.`);
   }
 }
 
