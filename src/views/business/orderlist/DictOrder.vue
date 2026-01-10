@@ -434,10 +434,8 @@ export default {
   methods: {
     deleteDict() {
       this.dictOrderLoading = true;
-      HttpUtil.post('/dict/update', {
-        dictOrderId: this.dictOrderForm.dictOrderId,
-        invalidFlag: '1'
-      })
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data === 1) {
             this.$message.success('删除成功！');
@@ -459,7 +457,8 @@ export default {
       this.dictOrderLoading = true;
       this.dictOrderForm.revertFlag = this.dictOrderForm.revertFlag ? '1' : '0';
       this.dictOrderForm.trayFlag = this.dictOrderForm.trayFlag ? '1' : '0';
-      HttpUtil.post('/dict/update', this.dictOrderForm)
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data === 1) {
             this.$message.success('保存成功！');
@@ -505,15 +504,21 @@ export default {
         return false;
       }
       this.dialogEditLoading = true;
-      HttpUtil.post('/dict/update', {
-        dictOrderId: this.dictOrderForm.dictOrderId,
-        dictName: this.dictOrderForm.dictName
-      })
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data === 1) {
             this.$message.success('修改成功！');
             this.dialogEditVisible = false;
-            HttpUtil.get('/dict/getDictOrder')
+            // 单机版模拟数据
+            Promise.resolve({
+              data: this.dictOrderList.map((item) => {
+                if (item.dictOrderId === this.dictOrderForm.dictOrderId) {
+                  return { ...item, dictName: this.dictOrderForm.dictName };
+                }
+                return item;
+              })
+            })
               .then((res) => {
                 if (res.data) {
                   this.dictOrderList = res.data;
@@ -542,7 +547,8 @@ export default {
         return false;
       }
       this.saveLoading = true;
-      HttpUtil.post('/dict/save', { dictName: this.inputName })
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data === 1) {
             this.$message.success('保存成功！');
@@ -567,7 +573,93 @@ export default {
     async getDictOrder() {
       this.dictOrderList = [];
       this.activeIndex = 0;
-      await HttpUtil.get('/dict/getDictOrder')
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            dictOrderId: 1,
+            dictName: '测试配方1',
+            orderName: '测试订单1',
+            revertFlag: '1',
+            trayFlag: '0',
+            photoFlag: '0',
+            productName: '测试产品1',
+            acceleratorKValue: '1.2',
+            artName: '测试工艺1',
+            loadMethod: '标准装载',
+            pathName: '路径1',
+            numberTurns: 1,
+            boxLength: 100,
+            boxHeight: 100,
+            boxWidth: 100,
+            boxWeight: 10,
+            sxSpeedLowerLimit: 1,
+            sxSpeedSet: 2,
+            sxSpeedUpperLimit: 3,
+            slLowerLimit: 10,
+            slSet: 20,
+            slUpperLimit: 30,
+            glLowerLimit: 100,
+            glSet: 200,
+            glUpperLimit: 300,
+            skLowerLimit: 50,
+            skSet: 100,
+            skUpperLimit: 150,
+            smplLowerLimit: 1,
+            smplSet: 2,
+            smplUpperLimit: 3,
+            pfnLowerLimit: 1000,
+            pfnSet: 2000,
+            pfnUpperLimit: 3000,
+            nlLowerLimit: 5,
+            nlSet: 10,
+            nlUpperLimit: 15,
+            orderBoxNum: 10,
+            invalidFlag: '0'
+          },
+          {
+            dictOrderId: 2,
+            dictName: '测试配方2',
+            orderName: '测试订单2',
+            revertFlag: '0',
+            trayFlag: '1',
+            photoFlag: '0',
+            productName: '测试产品2',
+            acceleratorKValue: '1.3',
+            artName: '测试工艺2',
+            loadMethod: '标准装载',
+            pathName: '路径2',
+            numberTurns: 2,
+            boxLength: 200,
+            boxHeight: 200,
+            boxWidth: 200,
+            boxWeight: 20,
+            sxSpeedLowerLimit: 2,
+            sxSpeedSet: 3,
+            sxSpeedUpperLimit: 4,
+            slLowerLimit: 20,
+            slSet: 30,
+            slUpperLimit: 40,
+            glLowerLimit: 200,
+            glSet: 300,
+            glUpperLimit: 400,
+            skLowerLimit: 60,
+            skSet: 110,
+            skUpperLimit: 160,
+            smplLowerLimit: 2,
+            smplSet: 3,
+            smplUpperLimit: 4,
+            pfnLowerLimit: 2000,
+            pfnSet: 3000,
+            pfnUpperLimit: 4000,
+            nlLowerLimit: 6,
+            nlSet: 11,
+            nlUpperLimit: 16,
+            orderBoxNum: 20,
+            invalidFlag: '0'
+          }
+        ]
+      })
         .then((res) => {
           if (res.data.length > 0) {
             this.dictOrderList = res.data;

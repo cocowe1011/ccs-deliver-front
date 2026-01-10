@@ -2077,7 +2077,18 @@ export default {
       return true;
     },
     testAcc() {
-      HttpUtil.get('/box/getAccData')
+      // 单机版模拟数据
+      Promise.resolve({
+        data: {
+          beam: 20,
+          power: 200,
+          scanW: 100,
+          scanF: 2,
+          pfn: 2000,
+          energy: 10,
+          speed: 2
+        }
+      })
         .then((res) => {
           this.createLog(
             moment().format('YYYY-MM-DD HH:mm:ss') +
@@ -2120,8 +2131,18 @@ export default {
       // }
       // 测试一个箱子不合格，，前后两个箱子都不合格*************************
 
-      // 获取当前加速器工艺，和系统设置工艺做比较
-      HttpUtil.get('/box/getAccDataByLocal')
+      // 获取当前加速器工艺，和系统设置工艺做比较 - 单机版模拟数据
+      Promise.resolve({
+        data: {
+          beam: 20,
+          power: 200,
+          scanW: 100,
+          scanF: 2,
+          pfn: 2000,
+          energy: 10,
+          speed: 2
+        }
+      })
         .then((res) => {
           // 给当前箱子赋值acc读取值
           const index = this.arrBC.findIndex((item) => {
@@ -2667,8 +2688,8 @@ export default {
                 finishOrder: false,
                 orderId: this.orderMainDy.orderId
               };
-              // 生成箱报告
-              await HttpUtil.post('/box/save', param)
+              // 生成箱报告 - 单机版模拟数据
+              await Promise.resolve({ data: 1 })
                 .then((res) => {
                   if (res.data == 1) {
                     this.$message.success(
@@ -2753,8 +2774,8 @@ export default {
                 finishOrder: false,
                 orderId: this.orderMainDy.orderId
               };
-              // 生成箱报告
-              await HttpUtil.post('/box/save', param)
+              // 生成箱报告 - 单机版模拟数据
+              await Promise.resolve({ data: 1 })
                 .then((res) => {
                   if (res.data == 1) {
                     this.$message.success(
@@ -2915,8 +2936,8 @@ export default {
                   finishOrder: false,
                   orderId: this.orderMainDy.orderId
                 };
-                // 更新箱报告的H点的时间
-                await HttpUtil.post('/box/save', param)
+                // 更新箱报告的H点的时间 - 单机版模拟数据
+                await Promise.resolve({ data: 1 })
                   .then((res) => {
                     if (res.data == 1) {
                       this.$message.success(
@@ -3270,7 +3291,8 @@ export default {
         ],
         orderId: this.orderMainDy.orderId
       };
-      await HttpUtil.post('/box/saveOriginal', param).then((res) => {
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 }).then((res) => {
         this.$message.success('原始记录同步保存成功！');
       });
     },
@@ -3289,7 +3311,8 @@ export default {
         finishOrder: true,
         orderId: this.orderMainDy.orderId
       };
-      await HttpUtil.post('/box/save', param)
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data == 1) {
             this.fullPause = false;
@@ -3337,7 +3360,8 @@ export default {
         this.tempArrF = []; // 经过E点，不合格的箱子，暂时缓存在临时队列，只有经过F点的时候，才去实际的处理箱子
         // 如果是手动清空，那么模拟id需要重新查询
         try {
-          await HttpUtil.post('/box/getId')
+          // 单机版模拟数据
+          await Promise.resolve({ data: 0 })
             .then((res) => {
               if (res.data >= 0) {
                 this.$nextTick(() => {
@@ -3406,8 +3430,22 @@ export default {
       }
     },
     getConfig() {
-      // 查询配置
-      HttpUtil.get('/cssConfig/getConfig')
+      // 查询配置 - 单机版模拟数据
+      Promise.resolve({
+        data: {
+          oneOneLength: 1000,
+          twoLength: 2000,
+          judgeLoadPoint: 500,
+          pointjLength: 100,
+          pointkLength: 200,
+          pointlLength: 300,
+          speedOne: 1,
+          speedTwo: 1,
+          newDelayPointTime: 0,
+          lengthOne: 1000,
+          lengthTwo: 2000
+        }
+      })
         .then((res) => {
           if (res.data) {
             this.l11 = res.data.oneOneLength;
@@ -3525,7 +3563,8 @@ export default {
                 userPassword: value,
                 userCode: remote.getGlobal('sharedObject').userInfo.userCode
               };
-              HttpUtil.post('/userInfo/verifyPassword', param)
+              // 单机版模拟数据
+              Promise.resolve({ data: true })
                 .then((res) => {
                   if (res.data) {
                     this.$message.success('验证通过！');
@@ -3694,7 +3733,8 @@ export default {
               finishOrder: true,
               orderId: this.orderMainDy.orderId
             };
-            await HttpUtil.post('/box/save', param)
+            // 单机版模拟数据
+            await Promise.resolve({ data: 1 })
               .then((res) => {
                 if (res.data == 1) {
                   this.$emit('returnGenerateBatchReport', true);
@@ -3721,7 +3761,111 @@ export default {
     async getOrderList() {
       this.dialogVisible = true;
       this.getOrderListLoading = true;
-      await HttpUtil.get('/order/getOrderList')
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            orderId: 'ORD001',
+            revertFlag: '1',
+            batchId: 'BATCH001',
+            orderNo: 'ON001',
+            orderName: '测试订单1',
+            planNum: 10,
+            productName: '测试产品1',
+            loadMethod: '标准装载',
+            pathName: '路径1',
+            artName: '测试工艺1',
+            acceleratorKValue: '1.2',
+            trayFlag: '0',
+            photoFlag: '0',
+            numberTurns: 1,
+            boxLength: 100,
+            boxWidth: 100,
+            boxHeight: 100,
+            boxWeight: 10,
+            slUpperLimit: 30,
+            slSet: 20,
+            slLowerLimit: 10,
+            glUpperLimit: 300,
+            glSet: 200,
+            glLowerLimit: 100,
+            skUpperLimit: 150,
+            skSet: 100,
+            skLowerLimit: 50,
+            smplUpperLimit: 3,
+            smplSet: 2,
+            smplLowerLimit: 1,
+            pfnUpperLimit: 3000,
+            pfnSet: 2000,
+            pfnLowerLimit: 1000,
+            nlUpperLimit: 15,
+            nlSet: 10,
+            nlLowerLimit: 5,
+            sxSpeedUpperLimit: 3,
+            sxSpeedSet: 2,
+            sxSpeedLowerLimit: 1,
+            orderBoxNum: 10,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-15 10:00:00'
+          },
+          {
+            orderId: 'ORD002',
+            revertFlag: '0',
+            batchId: 'BATCH002',
+            orderNo: 'ON002',
+            orderName: '测试订单2',
+            planNum: 20,
+            productName: '测试产品2',
+            loadMethod: '标准装载',
+            pathName: '路径2',
+            artName: '测试工艺2',
+            acceleratorKValue: '1.3',
+            trayFlag: '1',
+            photoFlag: '0',
+            numberTurns: 2,
+            boxLength: 200,
+            boxWidth: 200,
+            boxHeight: 200,
+            boxWeight: 20,
+            slUpperLimit: 40,
+            slSet: 30,
+            slLowerLimit: 20,
+            glUpperLimit: 400,
+            glSet: 300,
+            glLowerLimit: 200,
+            skUpperLimit: 160,
+            skSet: 110,
+            skLowerLimit: 60,
+            smplUpperLimit: 4,
+            smplSet: 3,
+            smplLowerLimit: 2,
+            pfnUpperLimit: 4000,
+            pfnSet: 3000,
+            pfnLowerLimit: 2000,
+            nlUpperLimit: 16,
+            nlSet: 11,
+            nlLowerLimit: 6,
+            sxSpeedUpperLimit: 4,
+            sxSpeedSet: 3,
+            sxSpeedLowerLimit: 2,
+            orderBoxNum: 20,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-16 11:00:00'
+          }
+        ]
+      })
         .then((res) => {
           this.tableData = res.data;
           this.tableData.forEach((item) => {

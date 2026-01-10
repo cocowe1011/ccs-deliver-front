@@ -206,9 +206,9 @@ app.on('ready', () => {
   });
   // 启动plc conPLC
   ipcMain.on('conPLC', (event, arg1, arg2) => {
-    if (process.env.NODE_ENV === 'production') {
-      conPLC();
-    }
+    // if (process.env.NODE_ENV === 'production') {
+    //   conPLC();
+    // }
     // setInterval(() => {
     //   console.log(writeStrArr.toString());
     // }, 50);
@@ -289,76 +289,76 @@ app.on('ready', () => {
     }, 100);
   }
   setAppTray();
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      const javaPath = path.join(
-        __static,
-        './jre',
-        'jre1.8.0_251',
-        'bin',
-        'java'
-      );
-      const jarPath = path.join(__static, './jarlib', 'ccs-deliver-middle.jar');
+  // if (process.env.NODE_ENV === 'production') {
+  //   try {
+  //     const javaPath = path.join(
+  //       __static,
+  //       './jre',
+  //       'jre1.8.0_251',
+  //       'bin',
+  //       'java'
+  //     );
+  //     const jarPath = path.join(__static, './jarlib', 'ccs-deliver-middle.jar');
 
-      // 优化的Java启动参数
-      const javaOpts = [
-        // 内存设置
-        '-Xmx4096m', // 最大堆内存
-        '-Xms4096m', // 初始堆内存
-        '-XX:MaxMetaspaceSize=512m', // 最大元空间大小
-        '-XX:MetaspaceSize=256m', // 初始元空间大小
+  //     // 优化的Java启动参数
+  //     const javaOpts = [
+  //       // 内存设置
+  //       '-Xmx4096m', // 最大堆内存
+  //       '-Xms4096m', // 初始堆内存
+  //       '-XX:MaxMetaspaceSize=512m', // 最大元空间大小
+  //       '-XX:MetaspaceSize=256m', // 初始元空间大小
 
-        // GC设置
-        '-XX:+UseG1GC', // 使用G1垃圾收集器
-        '-XX:MaxGCPauseMillis=200', // 最大GC停顿时间
-        '-XX:+HeapDumpOnOutOfMemoryError', // 内存溢出时导出堆转储
-        '-XX:HeapDumpPath=D://css_temp_data/dump', // 堆转储文件路径
+  //       // GC设置
+  //       '-XX:+UseG1GC', // 使用G1垃圾收集器
+  //       '-XX:MaxGCPauseMillis=200', // 最大GC停顿时间
+  //       '-XX:+HeapDumpOnOutOfMemoryError', // 内存溢出时导出堆转储
+  //       '-XX:HeapDumpPath=D://css_temp_data/dump', // 堆转储文件路径
 
-        // 性能优化
-        '-XX:+DisableExplicitGC', // 禁止显式GC调用
-        '-XX:+UseStringDeduplication', // 开启字符串去重
-        '-XX:+OptimizeStringConcat', // 优化字符串连接
+  //       // 性能优化
+  //       '-XX:+DisableExplicitGC', // 禁止显式GC调用
+  //       '-XX:+UseStringDeduplication', // 开启字符串去重
+  //       '-XX:+OptimizeStringConcat', // 优化字符串连接
 
-        // 监控和调试
-        '-XX:+PrintGCDetails', // 打印GC详细信息
-        '-XX:+PrintGCDateStamps', // 打印GC时间戳
-        '-Xloggc:D://css_temp_data/log/gc.log', // GC日志文件
-        '-XX:+HeapDumpBeforeFullGC', // Full GC前生成堆转储
-        '-XX:+PrintGCApplicationStoppedTime', // 打印应用暂停时间
+  //       // 监控和调试
+  //       '-XX:+PrintGCDetails', // 打印GC详细信息
+  //       '-XX:+PrintGCDateStamps', // 打印GC时间戳
+  //       '-Xloggc:D://css_temp_data/log/gc.log', // GC日志文件
+  //       '-XX:+HeapDumpBeforeFullGC', // Full GC前生成堆转储
+  //       '-XX:+PrintGCApplicationStoppedTime', // 打印应用暂停时间
 
-        // 错误处理
-        '-XX:+ExitOnOutOfMemoryError', // 发生OOM时退出
-        '-XX:ErrorFile=D://css_temp_data/log/hs_err_%p.log', // JVM错误日志
-        // 编码
-        '-Dfile.encoding=UTF-8',
-        // 应用参数
-        '-jar',
-        jarPath
-      ];
-      // 确保日志目录存在
-      const logDir = 'D://css_temp_data/log';
-      const dumpDir = 'D://css_temp_data/dump';
-      if (!fs.existsSync(logDir)) {
-        fs.mkdirSync(logDir, { recursive: true });
-      }
-      if (!fs.existsSync(dumpDir)) {
-        fs.mkdirSync(dumpDir, { recursive: true });
-      }
+  //       // 错误处理
+  //       '-XX:+ExitOnOutOfMemoryError', // 发生OOM时退出
+  //       '-XX:ErrorFile=D://css_temp_data/log/hs_err_%p.log', // JVM错误日志
+  //       // 编码
+  //       '-Dfile.encoding=UTF-8',
+  //       // 应用参数
+  //       '-jar',
+  //       jarPath
+  //     ];
+  //     // 确保日志目录存在
+  //     const logDir = 'D://css_temp_data/log';
+  //     const dumpDir = 'D://css_temp_data/dump';
+  //     if (!fs.existsSync(logDir)) {
+  //       fs.mkdirSync(logDir, { recursive: true });
+  //     }
+  //     if (!fs.existsSync(dumpDir)) {
+  //       fs.mkdirSync(dumpDir, { recursive: true });
+  //     }
 
-      logToFile(`启动Java进程，使用参数: ${javaOpts.join(' ')}`);
-      const process = spawn(javaPath, javaOpts);
+  //     logToFile(`启动Java进程，使用参数: ${javaOpts.join(' ')}`);
+  //     const process = spawn(javaPath, javaOpts);
 
-      process.on('error', (err) => {
-        logToFile(`Java程序启动错误: ${err.message}`);
-      });
+  //     process.on('error', (err) => {
+  //       logToFile(`Java程序启动错误: ${err.message}`);
+  //     });
 
-      process.on('exit', (code, signal) => {
-        logToFile(`Java程序退出，退出码: ${code}, 信号: ${signal}`);
-      });
-    } catch (error) {
-      logToFile(`Java程序启动异常: ${error.message}`);
-    }
-  }
+  //     process.on('exit', (code, signal) => {
+  //       logToFile(`Java程序退出，退出码: ${code}, 信号: ${signal}`);
+  //     });
+  //   } catch (error) {
+  //     logToFile(`Java程序启动异常: ${error.message}`);
+  //   }
+  // }
 
   // 开发者工具
   globalShortcut.register('CommandOrControl+L', () => {
@@ -383,114 +383,114 @@ app.on('ready', () => {
     writeLogToLocalOptimized(arg);
   });
   // 同步映射加速器数据
-  synAccData();
+  // synAccData();
 });
 
-function synAccData() {
-  HttpUtil.get('/box/synAccData')
-    .then(() => {
-      pollingST = setTimeout(() => {
-        clearTimeout(pollingST);
-        synAccData();
-      }, 2000);
-    })
-    .catch((err) => {
-      HttpUtil.get('/box/recoverAccData').catch(() => {});
-      pollingST = setTimeout(() => {
-        clearTimeout(pollingST);
-        synAccData();
-      }, 2000);
-    });
-}
+// function synAccData() {
+//   HttpUtil.get('/box/synAccData')
+//     .then(() => {
+//       pollingST = setTimeout(() => {
+//         clearTimeout(pollingST);
+//         synAccData();
+//       }, 2000);
+//     })
+//     .catch((err) => {
+//       HttpUtil.get('/box/recoverAccData').catch(() => {});
+//       pollingST = setTimeout(() => {
+//         clearTimeout(pollingST);
+//         synAccData();
+//       }, 2000);
+//     });
+// }
 
-function conPLC() {
-  logger.info('开始连接PLC');
-  // 查询配置
-  HttpUtil.get('/cssConfig/getConfig')
-    .then((res) => {
-      logger.info(JSON.stringify(res));
-      if (!res.data.plcPort) {
-        logger.info('配置查询失败');
-        // We have an error. Maybe the PLC is not reachable.
-        conPLC();
-        return false;
-      }
-      conn.initiateConnection(
-        {
-          port: Number(res.data.plcPort),
-          host: res.data.plcIp,
-          rack: 0,
-          slot: 1,
-          debug: false
-        },
-        (err) => {
-          if (typeof err !== 'undefined') {
-            logger.info('连接PLC失败' + JSON.stringify(err));
-            // We have an error. Maybe the PLC is not reachable.
-            conPLC();
-            return false;
-            // process.exit();
-          }
-          conn.setTranslationCB(function (tag) {
-            return variables[tag];
-          }); // This sets the "translation" to allow us to work with object names
-          logger.info('连接PLC成功');
-          // PLC看门狗心跳
-          conn.addItems('DBW60');
-          // 输送线自动运行 DBW62
-          conn.addItems('DBW62');
-          // 故障信息
-          conn.addItems('DBW66');
-          // 输送线不允许加速器写
-          conn.addItems('DBW64');
-          // 束下实时反馈速度
-          conn.addItems('DBW68');
-          // 关键点光电信号
-          conn.addItems('DBW70');
-          // 电机运行信号
-          conn.addItems('DBW72');
-          // 束下前输送速度比
-          conn.addItems('DBW76');
-          // 上料固定扫码
-          conn.addItems('DBB100');
-          // 迷宫出口固定扫码
-          conn.addItems('DBB130');
-          // J区速度
-          conn.addItems('DBW80');
-          // K区速度
-          conn.addItems('DBW82');
-          // L区速度
-          conn.addItems('DBW84');
+// function conPLC() {
+//   logger.info('开始连接PLC');
+//   // 查询配置
+//   HttpUtil.get('/cssConfig/getConfig')
+//     .then((res) => {
+//       logger.info(JSON.stringify(res));
+//       if (!res.data.plcPort) {
+//         logger.info('配置查询失败');
+//         // We have an error. Maybe the PLC is not reachable.
+//         conPLC();
+//         return false;
+//       }
+//       conn.initiateConnection(
+//         {
+//           port: Number(res.data.plcPort),
+//           host: res.data.plcIp,
+//           rack: 0,
+//           slot: 1,
+//           debug: false
+//         },
+//         (err) => {
+//           if (typeof err !== 'undefined') {
+//             logger.info('连接PLC失败' + JSON.stringify(err));
+//             // We have an error. Maybe the PLC is not reachable.
+//             conPLC();
+//             return false;
+//             // process.exit();
+//           }
+//           conn.setTranslationCB(function (tag) {
+//             return variables[tag];
+//           }); // This sets the "translation" to allow us to work with object names
+//           logger.info('连接PLC成功');
+//           // PLC看门狗心跳
+//           conn.addItems('DBW60');
+//           // 输送线自动运行 DBW62
+//           conn.addItems('DBW62');
+//           // 故障信息
+//           conn.addItems('DBW66');
+//           // 输送线不允许加速器写
+//           conn.addItems('DBW64');
+//           // 束下实时反馈速度
+//           conn.addItems('DBW68');
+//           // 关键点光电信号
+//           conn.addItems('DBW70');
+//           // 电机运行信号
+//           conn.addItems('DBW72');
+//           // 束下前输送速度比
+//           conn.addItems('DBW76');
+//           // 上料固定扫码
+//           conn.addItems('DBB100');
+//           // 迷宫出口固定扫码
+//           conn.addItems('DBB130');
+//           // J区速度
+//           conn.addItems('DBW80');
+//           // K区速度
+//           conn.addItems('DBW82');
+//           // L区速度
+//           conn.addItems('DBW84');
 
-          // 读DBW6和DBW62
-          setInterval(() => {
-            conn.readAllItems(valuesReady);
-          }, 50);
-          setInterval(() => {
-            // nodes7 代码
-            conn.writeItems(writeAddArr, writeStrArr, valuesWritten);
-          }, 100);
-          // 发送心跳
-          sendHeartToPLC();
-        }
-      );
-    })
-    .catch((err) => {
-      logger.info('config error!');
-    });
-}
+//           // 读DBW6和DBW62
+//           setInterval(() => {
+//             conn.readAllItems(valuesReady);
+//           }, 50);
+//           setInterval(() => {
+//             // nodes7 代码
+//             conn.writeItems(writeAddArr, writeStrArr, valuesWritten);
+//           }, 100);
+//           // 发送心跳
+//           sendHeartToPLC();
+//         }
+//       );
+//     })
+//     .catch((err) => {
+//       logger.info('config error!');
+//     });
+// }
 let times = 1;
 let nowValue = 0;
-function sendHeartToPLC() {
-  setInterval(() => {
-    if (times > 5) {
-      times = 1;
-      nowValue = 1 - nowValue;
-    }
-    times++;
-    writeValuesToPLC('DBW0', nowValue);
-  }, 200); // 每200毫秒执行一次交替
-}
+// function sendHeartToPLC() {
+//   setInterval(() => {
+//     if (times > 5) {
+//       times = 1;
+//       nowValue = 1 - nowValue;
+//     }
+//     times++;
+//     writeValuesToPLC('DBW0', nowValue);
+//   }, 200); // 每200毫秒执行一次交替
+// }
 
 function createFile(fileNameVal) {
   const sourcePath = path.join(__static, './report', fileNameVal); // 要复制的文件的路径=

@@ -196,7 +196,8 @@ export default {
         userCode: this.userCodeReg,
         userPassword: this.userPasswordReg
       };
-      HttpUtil.post('/userInfo/save', param)
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data == 1) {
             // 注册成功，跳转登录页面进行登录
@@ -244,7 +245,15 @@ export default {
         userCode: this.userCode,
         userPassword: this.userPassword
       };
-      HttpUtil.post('/login/login', param)
+      // 单机版模拟数据
+      Promise.resolve({
+        data: {
+          userId: 1,
+          userCode: this.userCode || 'admin',
+          userName: '管理员',
+          userPassword: this.userPassword || '123456'
+        }
+      })
         .then((res) => {
           if (res.data) {
             remote.getGlobal('sharedObject').userInfo = res.data;
@@ -318,9 +327,11 @@ export default {
     // ipcRenderer.send('logStatus','logout');
   },
   mounted() {
-    if (!this.javaAppStarted) {
-      this.checkJavaAppStatus();
-    }
+    // 单机版：跳过Java应用启动检查
+    this.javaAppStarted = true;
+    // if (!this.javaAppStarted) {
+    //   this.checkJavaAppStatus();
+    // }
   }
 };
 </script>

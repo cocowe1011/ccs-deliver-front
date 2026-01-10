@@ -275,7 +275,8 @@ export default {
         boxId: item.boxId,
         qualified: item.qualified
       };
-      HttpUtil.post('/box/update', param)
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res && res.data > 0) {
             this.$message.success('更新成功！');
@@ -301,15 +302,20 @@ export default {
             orderId: orderId,
             boxImitateId: boxImitateId
           };
-          HttpUtil.post('/box/deleteBox', param)
+          // 单机版模拟数据
+          Promise.resolve({ data: 1 })
             .then((res) => {
               if (res && res.data > 0) {
                 this.$message.success('删除成功！');
                 const param2 = {
                   orderId: this.updateOrderInfo.orderId
                 };
-                // 通过订单id查询所有箱子信息
-                HttpUtil.post('/box/getBoxReportByOrderId', param2)
+                // 通过订单id查询所有箱子信息 - 单机版模拟数据
+                Promise.resolve({
+                  data: this.boxList.filter(
+                    (box) => box.boxImitateId !== boxImitateId
+                  )
+                })
                   .then((res) => {
                     if (res.data && res.data.length > 0) {
                       this.boxList = res.data;
@@ -339,15 +345,25 @@ export default {
         boxImitateId: this.boxList[0].boxImitateId,
         orderId: this.updateOrderInfo.orderId
       };
-      await HttpUtil.post('/box/addBox', param)
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 })
         .then((res) => {
           if (res && res.data > 0) {
             this.$message.success('添加成功！');
             const param2 = {
               orderId: this.updateOrderInfo.orderId
             };
-            // 通过订单id查询所有箱子信息
-            HttpUtil.post('/box/getBoxReportByOrderId', param2)
+            // 通过订单id查询所有箱子信息 - 单机版模拟数据
+            const newBox = {
+              boxId: Date.now(),
+              boxImitateId: 'BOX' + (this.boxList.length + 1),
+              orderId: this.updateOrderInfo.orderId,
+              loadScanCode: 'SCAN' + Date.now(),
+              numberTurns: 1,
+              qualified: '1',
+              failReason: null
+            };
+            Promise.resolve({ data: [...this.boxList, newBox] })
               .then((res) => {
                 if (res.data && res.data.length > 0) {
                   this.boxList = res.data;
@@ -374,7 +390,33 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       };
-      await HttpUtil.post('/order/getOrderList400', param)
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: {
+          list: [
+            {
+              orderId: 'ORD4001',
+              createTime: '2024-01-15 10:00:00',
+              orderNo: 'ON4001',
+              batchId: 'BATCH4001',
+              orderName: '已完成订单1',
+              productName: '测试产品1',
+              artName: '测试工艺1'
+            },
+            {
+              orderId: 'ORD4002',
+              createTime: '2024-01-16 11:00:00',
+              orderNo: 'ON4002',
+              batchId: 'BATCH4002',
+              orderName: '已完成订单2',
+              productName: '测试产品2',
+              artName: '测试工艺2'
+            }
+          ],
+          total: 2,
+          pages: 1
+        }
+      })
         .then((res) => {
           if (res.data.list.length > 0) {
             this.pageTotal = res.data.total;
@@ -403,7 +445,32 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       };
-      await HttpUtil.post('/order/getOrderList400', param)
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: {
+          list: [
+            {
+              orderId: 'ORD4001',
+              createTime: '2024-01-15 10:00:00',
+              orderNo: 'ON4001',
+              batchId: 'BATCH4001',
+              orderName: '已完成订单1',
+              productName: '测试产品1',
+              artName: '测试工艺1'
+            },
+            {
+              orderId: 'ORD4002',
+              createTime: '2024-01-16 11:00:00',
+              orderNo: 'ON4002',
+              batchId: 'BATCH4002',
+              orderName: '已完成订单2',
+              productName: '测试产品2',
+              artName: '测试工艺2'
+            }
+          ],
+          total: 2
+        }
+      })
         .then((res) => {
           if (res.data.list.length > 0) {
             this.pageTotal = res.data.total;
@@ -424,8 +491,37 @@ export default {
       const param = {
         orderId: data.orderId
       };
-      // 通过订单id查询所有箱子信息
-      await HttpUtil.post('/box/getBoxReportByOrderId', param)
+      // 通过订单id查询所有箱子信息 - 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            boxId: 1,
+            boxImitateId: 'BOX001',
+            orderId: data.orderId,
+            loadScanCode: 'SCAN001',
+            labyrinthScanCode: 'LAB001',
+            numberTurns: 1,
+            qualified: '1',
+            failReason: null,
+            orderNo: data.orderNo || null,
+            createTime: '2024-01-15 10:00:00',
+            invalidFlag: '0'
+          },
+          {
+            boxId: 2,
+            boxImitateId: 'BOX002',
+            orderId: data.orderId,
+            loadScanCode: 'SCAN002',
+            labyrinthScanCode: 'LAB002',
+            numberTurns: 2,
+            qualified: '1',
+            failReason: null,
+            orderNo: data.orderNo || null,
+            createTime: '2024-01-15 11:00:00',
+            invalidFlag: '0'
+          }
+        ]
+      })
         .then((res) => {
           if (res.data && res.data.length > 0) {
             this.boxList = res.data;
@@ -447,8 +543,37 @@ export default {
       const param = {
         orderId: data.orderId
       };
-      // 通过订单id查询所有箱子信息
-      await HttpUtil.post('/box/getBoxOriginalReportByOrderId', param)
+      // 通过订单id查询所有箱子信息 - 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            boxId: 1,
+            boxImitateId: 'BOX001',
+            orderId: data.orderId,
+            loadScanCode: 'SCAN001',
+            labyrinthScanCode: 'LAB001',
+            numberTurns: 1,
+            qualified: '1',
+            failReason: null,
+            orderNo: data.orderNo || null,
+            createTime: '2024-01-15 10:00:00',
+            invalidFlag: '0'
+          },
+          {
+            boxId: 2,
+            boxImitateId: 'BOX002',
+            orderId: data.orderId,
+            loadScanCode: 'SCAN002',
+            labyrinthScanCode: 'LAB002',
+            numberTurns: 2,
+            qualified: '1',
+            failReason: null,
+            orderNo: data.orderNo || null,
+            createTime: '2024-01-15 11:00:00',
+            invalidFlag: '0'
+          }
+        ]
+      })
         .then((res) => {
           if (res.data && res.data.length > 0) {
             this.boxList = res.data;
@@ -480,7 +605,8 @@ export default {
         aboxImitateId: this.aBoxImitateId,
         boxImitateId: this.updateBoxImitateIdStr
       };
-      HttpUtil.post('/box/updateBoxImitateId', param)
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res && res.data > 0) {
             this.$message.success('更新成功！');
@@ -491,8 +617,14 @@ export default {
             const param2 = {
               orderId: this.updateOrderInfo.orderId
             };
-            // 通过订单id查询所有箱子信息
-            HttpUtil.post('/box/getBoxReportByOrderId', param2)
+            // 通过订单id查询所有箱子信息 - 单机版模拟数据
+            const updatedBoxList = this.boxList.map((box) => {
+              if (box.boxImitateId === this.aBoxImitateId) {
+                return { ...box, boxImitateId: this.updateBoxImitateIdStr };
+              }
+              return box;
+            });
+            Promise.resolve({ data: updatedBoxList })
               .then((res) => {
                 if (res.data && res.data.length > 0) {
                   this.boxList = res.data;

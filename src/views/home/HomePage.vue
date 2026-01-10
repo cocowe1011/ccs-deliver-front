@@ -262,7 +262,8 @@ export default {
                 userName: value,
                 userCode: remote.getGlobal('sharedObject').userInfo.userCode
               };
-              HttpUtil.post('/userInfo/verifyName', param)
+              // 单机版模拟数据
+              Promise.resolve({ data: true })
                 .then((res) => {
                   if (res.data) {
                     this.$message.success('验证通过！');
@@ -323,7 +324,8 @@ export default {
         userPassword: this.updatePasswordForm.newPassword,
         userCode: remote.getGlobal('sharedObject').userInfo.userCode
       };
-      HttpUtil.post('/userInfo/updatePassword', param)
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 })
         .then((res) => {
           if (res.data > 0) {
             this.$notify({

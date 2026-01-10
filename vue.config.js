@@ -19,8 +19,8 @@ module.exports = defineConfig({
     electronBuilder: {
       nodeIntegration: true,
       builderOptions: {
-        productName: 'ccs-deliver-front', //生成exe的名字
-        appId: 'com.wl.ccs', //包名
+        productName: 'ccs-deliver-front-player-demo-version', //生成exe的名字
+        appId: 'com.wl.ccs.player.demo.zhengde.version', //包名
         copyright: 'wl', //版权信息,
         nsis: {
           oneClick: false, // 是否一键安装
