@@ -1083,7 +1083,18 @@ export default {
       return true;
     },
     testAcc() {
-      HttpUtil.get('/box/getAccData').then((res)=> {
+      // 单机版模拟数据
+      Promise.resolve({
+        data: {
+          beam: 20,
+          power: 200,
+          scanWidth: 100,
+          scanFrequency: 2,
+          pfn: 2000,
+          energy: 10,
+          speed: 2
+        }
+      }).then((res)=> {
         this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 加速器返回数据：' + JSON.stringify(res), 'log');
       }).catch((err)=> {
         this.$message.success('连接加速器失败！原因：' + err)
@@ -1097,8 +1108,18 @@ export default {
       // this.$message.success(this.nowShuXiaid + '合格！');
       // 无加速器时放开此注释*********************************************
       // 测试一个箱子不合格，，前后两个箱子都不合格*************************
-      // 获取当前加速器工艺，和系统设置工艺做比较
-      HttpUtil.get('/box/getAccData').then((res)=> {
+      // 获取当前加速器工艺，和系统设置工艺做比较 - 单机版模拟数据
+      Promise.resolve({
+        data: {
+          beam: 20,
+          power: 200,
+          scanWidth: 100,
+          scanFrequency: 2,
+          pfn: 2000,
+          energy: 10,
+          speed: 2
+        }
+      }).then((res)=> {
         // console.log(res)
         // 给当前箱子赋值acc读取值
         const index = this.arrCD.findIndex(item => {
@@ -1618,8 +1639,8 @@ export default {
                   finishOrder: false,
                   orderId: this.orderMainDy.orderId
                 }
-                // 生成箱报告
-                await HttpUtil.post('/box/save', param).then((res)=> {
+                // 生成箱报告 - 单机版模拟数据
+                await Promise.resolve({ data: 1 }).then((res)=> {
                   if(res.data == 1) {
                     this.$message.success('货物：' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！')
                     this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrF[this.arrF.length - 1].boxImitateId + '，已生成箱报告！', 'log');
@@ -1679,8 +1700,8 @@ export default {
                   finishOrder: false,
                   orderId: this.orderMainDy.orderId
                 }
-                // 生成箱报告
-                await HttpUtil.post('/box/save', param).then((res)=> {
+                // 生成箱报告 - 单机版模拟数据
+                await Promise.resolve({ data: 1 }).then((res)=> {
                   if(res.data == 1) {
                     this.$message.success('货物：' + this.arrEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！')
                     this.createLog(moment().format('YYYY-MM-DD HH:mm:ss') + ' 货物' + this.arrEI[this.nowTiChuNum].boxImitateId + '，已生成箱报告！', 'log');
@@ -1901,7 +1922,8 @@ export default {
         finishOrder: true,
         orderId: this.orderMainDy.orderId
       }
-      await HttpUtil.post('/box/save', param).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data == 1) {
           this.fullPause = false;
           this.fullRun = false;
@@ -1951,9 +1973,9 @@ export default {
         // 切换订单后。在传送带的箱子还是该下货下货，只不过下货时不再往F队列或者剔除队列添加
         this.arrDE = [];
         this.arrEI = [];
-        // 如果是手动清空，那么模拟id需要重新查询
+        // 如果是手动清空，那么模拟id需要重新查询 - 单机版模拟数据
         try {
-          await HttpUtil.post('/box/getId').then((res)=> {
+          await Promise.resolve({ data: 100 }).then((res)=> {
             if(res.data >= 0) {
               this.$nextTick(() => {
                 this.beginCountNum = res.data
@@ -2038,8 +2060,26 @@ export default {
       }
     },
     getConfig() {
-      // 查询配置
-      HttpUtil.get('/cssConfig/getConfig').then((res)=> {
+      // 查询配置 - 单机版模拟数据
+      Promise.resolve({
+        data: {
+          configId: 1,
+          plcIp: '192.168.1.100',
+          plcPort: '502',
+          oneOneLength: '1000',
+          twoLength: '2000',
+          judgeLoadPoint: 'D',
+          pointjLength: 100,
+          pointkLength: 200,
+          pointlLength: 300,
+          speedOne: 1.0,
+          speedTwo: 1.0,
+          lengthOne: 500,
+          lengthTwo: 600,
+          newDelayPointTime: 1000,
+          languageSet: 'zh'
+        }
+      }).then((res)=> {
         if(res.data) {
           this.l11 = res.data.oneOneLength;
           this.l2 = res.data.twoLength;
@@ -2127,12 +2167,12 @@ export default {
             cancelButtonText: '取消',
             inputType: 'password'
           }).then(({ value }) => {
-            // 验证姓名是否正确
+            // 验证姓名是否正确 - 单机版模拟数据
             const param = {
               userPassword: value,
               userCode: remote.getGlobal('sharedObject').userInfo.userCode
             }
-            HttpUtil.post('/userInfo/verifyPassword', param).then((res)=> {
+            Promise.resolve({ data: true }).then((res)=> {
               if(res.data) {
                 this.$message.success('验证通过！');
                 this.clearAllData(false);
@@ -2293,7 +2333,8 @@ export default {
             finishOrder: true,
             orderId: this.orderMainDy.orderId
           }
-          await HttpUtil.post('/box/save', param).then((res)=> {
+          // 单机版模拟数据
+          await Promise.resolve({ data: 1 }).then((res)=> {
             if(res.data == 1) {
               this.$emit('returnGenerateBatchReport',true)
             } else {
@@ -2318,7 +2359,111 @@ export default {
     async getOrderList() {
         this.dialogVisible = true
       this.getOrderListLoading = true
-      await HttpUtil.get('/order/getOrderList').then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            orderId: 'ORD001',
+            revertFlag: '1',
+            batchId: 'BATCH001',
+            orderNo: 'ON001',
+            orderName: '测试订单1',
+            planNum: 10,
+            productName: '测试产品1',
+            loadMethod: '标准装载',
+            pathName: '路径1',
+            artName: '测试工艺1',
+            acceleratorKValue: '1.2',
+            trayFlag: '0',
+            photoFlag: '0',
+            numberTurns: 1,
+            boxLength: 100,
+            boxWidth: 100,
+            boxHeight: 100,
+            boxWeight: 10,
+            slUpperLimit: 30,
+            slSet: 20,
+            slLowerLimit: 10,
+            glUpperLimit: 300,
+            glSet: 200,
+            glLowerLimit: 100,
+            skUpperLimit: 150,
+            skSet: 100,
+            skLowerLimit: 50,
+            smplUpperLimit: 3,
+            smplSet: 2,
+            smplLowerLimit: 1,
+            pfnUpperLimit: 3000,
+            pfnSet: 2000,
+            pfnLowerLimit: 1000,
+            nlUpperLimit: 15,
+            nlSet: 10,
+            nlLowerLimit: 5,
+            sxSpeedUpperLimit: 3,
+            sxSpeedSet: 2,
+            sxSpeedLowerLimit: 1,
+            orderBoxNum: 10,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-15 10:00:00'
+          },
+          {
+            orderId: 'ORD002',
+            revertFlag: '0',
+            batchId: 'BATCH002',
+            orderNo: 'ON002',
+            orderName: '测试订单2',
+            planNum: 20,
+            productName: '测试产品2',
+            loadMethod: '标准装载',
+            pathName: '路径2',
+            artName: '测试工艺2',
+            acceleratorKValue: '1.3',
+            trayFlag: '1',
+            photoFlag: '0',
+            numberTurns: 2,
+            boxLength: 200,
+            boxWidth: 200,
+            boxHeight: 200,
+            boxWeight: 20,
+            slUpperLimit: 40,
+            slSet: 30,
+            slLowerLimit: 20,
+            glUpperLimit: 400,
+            glSet: 300,
+            glLowerLimit: 200,
+            skUpperLimit: 160,
+            skSet: 110,
+            skLowerLimit: 60,
+            smplUpperLimit: 4,
+            smplSet: 3,
+            smplLowerLimit: 2,
+            pfnUpperLimit: 4000,
+            pfnSet: 3000,
+            pfnLowerLimit: 2000,
+            nlUpperLimit: 16,
+            nlSet: 11,
+            nlLowerLimit: 6,
+            sxSpeedUpperLimit: 4,
+            sxSpeedSet: 3,
+            sxSpeedLowerLimit: 2,
+            orderBoxNum: 20,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-16 11:00:00'
+          }
+        ]
+      }).then((res)=> {
         this.tableData = res.data
         this.tableData.forEach(item => {
           item.revertFlag = item.revertFlag == '1' ? '翻转' : ''

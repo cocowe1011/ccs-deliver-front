@@ -183,7 +183,38 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       }
-      await HttpUtil.post('/order/getReportList', param).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: {
+          list: [
+            {
+              orderId: 'ORD001',
+              createTime: '2024-01-15 10:00:00',
+              orderNo: 'ON001',
+              batchId: 'BATCH001',
+              orderName: '测试订单1',
+              boxImitateId: 'BOX001',
+              productName: '测试产品1',
+              artName: '测试工艺1',
+              loadMethod: '标准装载',
+              pathName: '路径1'
+            },
+            {
+              orderId: 'ORD002',
+              createTime: '2024-01-16 11:00:00',
+              orderNo: 'ON002',
+              batchId: 'BATCH002',
+              orderName: '测试订单2',
+              boxImitateId: 'BOX002',
+              productName: '测试产品2',
+              artName: '测试工艺2',
+              loadMethod: '标准装载',
+              pathName: '路径2'
+            }
+          ],
+          total: 2
+        }
+      }).then((res)=> {
         if(res.data.list.length > 0) {
           this.pageTotal = res.data.total;
           this.tableData = res.data.list;
@@ -201,7 +232,39 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       }
-      await HttpUtil.post('/order/getReportList', param).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: {
+          list: [
+            {
+              orderId: 'ORD001',
+              createTime: '2024-01-15 10:00:00',
+              orderNo: 'ON001',
+              batchId: 'BATCH001',
+              orderName: '测试订单1',
+              boxImitateId: 'BOX001',
+              productName: '测试产品1',
+              artName: '测试工艺1',
+              loadMethod: '标准装载',
+              pathName: '路径1'
+            },
+            {
+              orderId: 'ORD002',
+              createTime: '2024-01-16 11:00:00',
+              orderNo: 'ON002',
+              batchId: 'BATCH002',
+              orderName: '测试订单2',
+              boxImitateId: 'BOX002',
+              productName: '测试产品2',
+              artName: '测试工艺2',
+              loadMethod: '标准装载',
+              pathName: '路径2'
+            }
+          ],
+          total: 2,
+          pages: 1
+        }
+      }).then((res)=> {
         if(res.data.list.length > 0) {
           this.pageTotal = res.data.total;
           this.tableData = res.data.list;
@@ -220,7 +283,84 @@ export default {
     },
     async getOrderReportData(row) {
       const param = {orderId: row.orderId}
-      await HttpUtil.post('/order/getOrderMainReport', param).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            orderId: row.orderId,
+            orderNo: row.orderNo || 'ON001',
+            batchId: row.batchId || 'BATCH001',
+            orderName: row.orderName || '测试订单',
+            createTime: row.createTime || '2024-01-15 10:00:00',
+            revertFlag: row.revertFlag || '0',
+            productName: row.productName || '测试产品',
+            acceleratorKValue: row.acceleratorKValue || '1.2',
+            artName: row.artName || '测试工艺',
+            loadMethod: row.loadMethod || '标准装载',
+            pathName: row.pathName || '路径1',
+            numberTurns: 1,
+            boxLength: 100,
+            boxWidth: 100,
+            boxHeight: 100,
+            boxWeight: 10,
+            slUpperLimit: 30,
+            slSet: 20,
+            slLowerLimit: 10,
+            glUpperLimit: 300,
+            glSet: 200,
+            glLowerLimit: 100,
+            skUpperLimit: 150,
+            skSet: 100,
+            skLowerLimit: 50,
+            smplUpperLimit: 3,
+            smplSet: 2,
+            smplLowerLimit: 1,
+            pfnUpperLimit: 3000,
+            pfnSet: 2000,
+            pfnLowerLimit: 1000,
+            nlUpperLimit: 15,
+            nlSet: 10,
+            nlLowerLimit: 5,
+            sxSpeedUpperLimit: 3,
+            sxSpeedSet: 2,
+            sxSpeedLowerLimit: 1,
+            orderBoxNum: 10,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 400,
+            startTime: '2024-01-15 10:00:00',
+            endTime: '2024-01-15 12:00:00',
+            slMin: 18,
+            slAverage: 20,
+            slMax: 22,
+            speedMin: 1.8,
+            speedAverage: 2,
+            speedMax: 2.2,
+            skMin: 95,
+            skAverage: 100,
+            skMax: 105,
+            glMin: 190,
+            glAverage: 200,
+            glMax: 210,
+            smplMin: 1.8,
+            smplAverage: 2,
+            smplMax: 2.2,
+            pfnMin: 1900,
+            pfnAverage: 2000,
+            pfnMax: 2100,
+            nlMin: 9,
+            nlAverage: 10,
+            nlMax: 11,
+            creatorName: '测试操作员',
+            orderTotal: 10,
+            passTotal: 8,
+            unpassTotal: 2,
+            passStr: 'BOX001,BOX002',
+            unpassStr: 'BOX003,BOX004'
+          }
+        ]
+      }).then((res)=> {
         this.printObj.recordset = res.data
         this.printView(this.printObj, this.orderReportPath)
       }).catch((err)=> {
@@ -230,7 +370,80 @@ export default {
     },
     async getBoxReportData(row) {
       const param = {boxImitateId: row.boxImitateId}
-      await HttpUtil.post('/box/getBoxReport', param).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            boxDetailId: 1,
+            boxId: 1,
+            boxImitateId: row.boxImitateId || 'BOX001',
+            orderId: row.orderId || 'ORD001',
+            orderNo: row.orderNo || 'ON001',
+            loadScanCode: 'SCAN001',
+            labyrinthScanCode: 'LAB001',
+            boxDetailNumberTurns: 1,
+            ddNumberTurns: 1,
+            boxNumberTurns: 1,
+            qualified: '1',
+            boxQualified: '合格',
+            slRead: 20,
+            glRead: 200,
+            skRead: 100,
+            smplRead: 2,
+            pfnRead: 2000,
+            nlRead: 10,
+            sxSpeedRead: 2000,
+            radiationStartTime: '2024-01-15 10:00:00',
+            radiationEndTime: '2024-01-15 10:30:00',
+            passATime: '2024-01-15 10:00:00',
+            passBTime: '2024-01-15 10:05:00',
+            passCTime: '2024-01-15 10:10:00',
+            passDTime: '2024-01-15 10:15:00',
+            passETime: '2024-01-15 10:20:00',
+            passFTime: '2024-01-15 10:25:00',
+            passGTime: '2024-01-15 10:28:00',
+            passHTime: '2024-01-15 10:30:00',
+            orderName: row.orderName || '测试订单',
+            revertFlag: row.revertFlag || '0',
+            batchId: row.batchId || 'BATCH001',
+            productName: row.productName || '测试产品',
+            acceleratorKValue: row.acceleratorKValue || '1.2',
+            artName: row.artName || '测试工艺',
+            loadMethod: row.loadMethod || '标准装载',
+            pathName: row.pathName || '路径1',
+            boxLength: 100,
+            boxWidth: 100,
+            boxHeight: 100,
+            boxWeight: 10,
+            slUpperLimit: '30',
+            slSet: '20',
+            slLowerLimit: '10',
+            glUpperLimit: '300',
+            glSet: '200',
+            glLowerLimit: '100',
+            skUpperLimit: '150',
+            skSet: '100',
+            skLowerLimit: '50',
+            smplUpperLimit: '3',
+            smplSet: '2',
+            smplLowerLimit: '1',
+            pfnUpperLimit: '3000',
+            pfnSet: '2000',
+            pfnLowerLimit: '1000',
+            nlUpperLimit: '15',
+            nlSet: '10',
+            nlLowerLimit: '5',
+            sxSpeedUpperLimit: '3',
+            sxSpeedSet: '2',
+            sxSpeedLowerLimit: '1',
+            orderBoxNum: 10,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 400
+          }
+        ]
+      }).then((res)=> {
         this.printObj.recordset = res.data
         this.printView(this.printObj, this.boxReportPath)
       }).catch((err)=> {

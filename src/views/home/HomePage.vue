@@ -192,7 +192,8 @@ export default {
               userName: value,
               userCode: remote.getGlobal('sharedObject').userInfo.userCode
             }
-            HttpUtil.post('/userInfo/verifyName', param).then((res)=> {
+            // 单机版模拟数据
+            Promise.resolve({ data: true }).then((res)=> {
               if(res.data) {
                 this.$message.success('验证通过！');
                 // 打开修改密码的弹窗，可以修改密码
@@ -247,7 +248,8 @@ export default {
         userPassword: this.updatePasswordForm.newPassword,
         userCode: remote.getGlobal('sharedObject').userInfo.userCode
       }
-      HttpUtil.post('/userInfo/updatePassword', param).then((res)=> {
+      // 单机版模拟数据
+      Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data > 0) {
           this.$notify({
             title: '修改成功！',

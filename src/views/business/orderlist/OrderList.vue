@@ -302,7 +302,8 @@ export default {
       }
       this.saveLoading = true;
       this.orderMainForm.revertFlag = this.orderMainForm.revertFlag ? '1' : '0'
-      await HttpUtil.post('/order/save', this.orderMainForm).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data === 1) {
           this.$message.success('保存成功！');
           // 查询订单信息
@@ -322,7 +323,8 @@ export default {
     async updateOrder() {
       this.editLoading = true;
       this.orderMainForm.revertFlag = this.orderMainForm.revertFlag ? '1' : '0'
-      await HttpUtil.post('/order/update', this.orderMainForm).then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data === 1) {
           this.$message.success('修改成功！');
           // 将修改的订单信息同步到动态图组件
@@ -345,7 +347,111 @@ export default {
     },
     async getOrderList() {
       this.getOrderListLoading = true
-      await HttpUtil.get('/order/getOrderList').then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({
+        data: [
+          {
+            orderId: 'ORD001',
+            revertFlag: '1',
+            batchId: 'BATCH001',
+            orderNo: 'ON001',
+            orderName: '测试订单1',
+            planNum: 10,
+            productName: '测试产品1',
+            loadMethod: '标准装载',
+            pathName: '路径1',
+            artName: '测试工艺1',
+            acceleratorKValue: '1.2',
+            trayFlag: '0',
+            photoFlag: '0',
+            numberTurns: 1,
+            boxLength: 100,
+            boxWidth: 100,
+            boxHeight: 100,
+            boxWeight: 10,
+            slUpperLimit: 30,
+            slSet: 20,
+            slLowerLimit: 10,
+            glUpperLimit: 300,
+            glSet: 200,
+            glLowerLimit: 100,
+            skUpperLimit: 150,
+            skSet: 100,
+            skLowerLimit: 50,
+            smplUpperLimit: 3,
+            smplSet: 2,
+            smplLowerLimit: 1,
+            pfnUpperLimit: 3000,
+            pfnSet: 2000,
+            pfnLowerLimit: 1000,
+            nlUpperLimit: 15,
+            nlSet: 10,
+            nlLowerLimit: 5,
+            sxSpeedUpperLimit: 3,
+            sxSpeedSet: 2,
+            sxSpeedLowerLimit: 1,
+            orderBoxNum: 10,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-15 10:00:00'
+          },
+          {
+            orderId: 'ORD002',
+            revertFlag: '0',
+            batchId: 'BATCH002',
+            orderNo: 'ON002',
+            orderName: '测试订单2',
+            planNum: 20,
+            productName: '测试产品2',
+            loadMethod: '标准装载',
+            pathName: '路径2',
+            artName: '测试工艺2',
+            acceleratorKValue: '1.3',
+            trayFlag: '1',
+            photoFlag: '0',
+            numberTurns: 2,
+            boxLength: 200,
+            boxWidth: 200,
+            boxHeight: 200,
+            boxWeight: 20,
+            slUpperLimit: 40,
+            slSet: 30,
+            slLowerLimit: 20,
+            glUpperLimit: 400,
+            glSet: 300,
+            glLowerLimit: 200,
+            skUpperLimit: 160,
+            skSet: 110,
+            skLowerLimit: 60,
+            smplUpperLimit: 4,
+            smplSet: 3,
+            smplLowerLimit: 2,
+            pfnUpperLimit: 4000,
+            pfnSet: 3000,
+            pfnLowerLimit: 2000,
+            nlUpperLimit: 16,
+            nlSet: 11,
+            nlLowerLimit: 6,
+            sxSpeedUpperLimit: 4,
+            sxSpeedSet: 3,
+            sxSpeedLowerLimit: 2,
+            orderBoxNum: 20,
+            eliminateBoxNum: 0,
+            exhibitBoxNum: 0,
+            qualifiedBoxNum: 0,
+            orderStatus: 100,
+            startTime: null,
+            endTime: null,
+            creatorName: '测试操作员',
+            createTime: '2024-01-16 11:00:00'
+          }
+        ]
+      }).then((res)=> {
         this.tableData = res.data
         this.tableData.forEach(item => {
           item.revertFlag = item.revertFlag == '1' ? '翻转' : ''
@@ -372,7 +478,8 @@ export default {
       this.isDynamicGraphShow = false
     },
     async getId() {
-      await HttpUtil.post('/box/getId').then((res)=> {
+      // 单机版模拟数据
+      await Promise.resolve({ data: 100 }).then((res)=> {
         if(res.data >= 0) {
           this.$nextTick(() => {
             this.$refs.dynamicGraph.setBeginCountNum(res.data)
@@ -398,8 +505,8 @@ export default {
         startTime: moment().format('YYYY-MM-DD HH:mm:ss'),
         orderStatus: 200
       }
-      // 更新订单开始时间
-      HttpUtil.post('/order/update', param).then((res)=> {
+      // 更新订单开始时间 - 单机版模拟数据
+      Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data == 1) {
           this.$message.success('开始订单！更新订单开始时间成功！')
           // 运行
@@ -421,8 +528,8 @@ export default {
         orderId: obj.orderId,
         orderStatus: 300
       }
-      // 更新300状态
-      HttpUtil.post('/order/update', param).then((res)=> {
+      // 更新300状态 - 单机版模拟数据
+      Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data != 1) {
           this.$message.error('更新订单运行状态失败！')
         } else {
@@ -471,7 +578,93 @@ export default {
     },
     getDictOrder() {
       this.dictOrderList = []
-      HttpUtil.get('/dict/getDictOrder').then((res)=> {
+      // 单机版模拟数据
+      Promise.resolve({
+        data: [
+          {
+            dictOrderId: 1,
+            dictName: '测试配方1',
+            orderName: '测试订单1',
+            revertFlag: '1',
+            trayFlag: '0',
+            photoFlag: '0',
+            productName: '测试产品1',
+            acceleratorKValue: '1.2',
+            artName: '测试工艺1',
+            loadMethod: '标准装载',
+            pathName: '路径1',
+            numberTurns: 1,
+            boxLength: 100,
+            boxHeight: 100,
+            boxWidth: 100,
+            boxWeight: 10,
+            sxSpeedLowerLimit: 1,
+            sxSpeedSet: 2,
+            sxSpeedUpperLimit: 3,
+            slLowerLimit: 10,
+            slSet: 20,
+            slUpperLimit: 30,
+            glLowerLimit: 100,
+            glSet: 200,
+            glUpperLimit: 300,
+            skLowerLimit: 50,
+            skSet: 100,
+            skUpperLimit: 150,
+            smplLowerLimit: 1,
+            smplSet: 2,
+            smplUpperLimit: 3,
+            pfnLowerLimit: 1000,
+            pfnSet: 2000,
+            pfnUpperLimit: 3000,
+            nlLowerLimit: 5,
+            nlSet: 10,
+            nlUpperLimit: 15,
+            orderBoxNum: 10,
+            invalidFlag: '0'
+          },
+          {
+            dictOrderId: 2,
+            dictName: '测试配方2',
+            orderName: '测试订单2',
+            revertFlag: '0',
+            trayFlag: '1',
+            photoFlag: '0',
+            productName: '测试产品2',
+            acceleratorKValue: '1.3',
+            artName: '测试工艺2',
+            loadMethod: '标准装载',
+            pathName: '路径2',
+            numberTurns: 2,
+            boxLength: 200,
+            boxHeight: 200,
+            boxWidth: 200,
+            boxWeight: 20,
+            sxSpeedLowerLimit: 2,
+            sxSpeedSet: 3,
+            sxSpeedUpperLimit: 4,
+            slLowerLimit: 20,
+            slSet: 30,
+            slUpperLimit: 40,
+            glLowerLimit: 200,
+            glSet: 300,
+            glUpperLimit: 400,
+            skLowerLimit: 60,
+            skSet: 110,
+            skUpperLimit: 160,
+            smplLowerLimit: 2,
+            smplSet: 3,
+            smplUpperLimit: 4,
+            pfnLowerLimit: 2000,
+            pfnSet: 3000,
+            pfnUpperLimit: 4000,
+            nlLowerLimit: 6,
+            nlSet: 11,
+            nlUpperLimit: 16,
+            orderBoxNum: 20,
+            invalidFlag: '0'
+          }
+        ]
+      }).then((res)=> {
         if(res.data) {
           this.dictOrderList = res.data
         }

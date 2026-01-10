@@ -19,8 +19,8 @@ module.exports = defineConfig({
     electronBuilder: {
       nodeIntegration: true,
       builderOptions: {
-        'productName': 'ccs-deliver-front',//生成exe的名字
-        "appId": "com.wl.ccs",//包名  
+        'productName': 'ccs-deliver-front-ganzhou-palyer-demo-version',//生成exe的名字
+        "appId": "com.wl.ccs.player.demo.ganzhou.version",//包名  
         "copyright": "wl",//版权信息,
         "nsis": {
           "oneClick": false, // 是否一键安装
@@ -31,7 +31,7 @@ module.exports = defineConfig({
           "installerHeaderIcon": "./build/icons/icon.ico", // 安装时头部图标
           "createDesktopShortcut": true, // 是否创建桌面图标
           "createStartMenuShortcut": true,// 是否创建开始菜单图标
-          "shortcutName": "全自动束下输送系统", // 快捷方式名称
+          "shortcutName": "全自动束下输送系统-赣州版", // 快捷方式名称
           "runAfterFinish": false,//是否安装完成后运行
         },
         "win": {

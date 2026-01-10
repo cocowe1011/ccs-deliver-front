@@ -64,8 +64,26 @@ export default {
   methods: {
     getConfig() {
       this.loading = true
-      // 查询配置
-      HttpUtil.get('/cssConfig/getConfig').then((res)=> {
+      // 查询配置 - 单机版模拟数据
+      Promise.resolve({
+        data: {
+          configId: 1,
+          plcIp: '192.168.1.100',
+          plcPort: '502',
+          oneOneLength: '1000',
+          twoLength: '2000',
+          judgeLoadPoint: 'D',
+          pointjLength: 100,
+          pointkLength: 200,
+          pointlLength: 300,
+          speedOne: 1.0,
+          speedTwo: 1.0,
+          lengthOne: 500,
+          lengthTwo: 600,
+          newDelayPointTime: 1000,
+          languageSet: 'zh'
+        }
+      }).then((res)=> {
         this.cssConfig = res.data;
         this.configId = res.data.configId;
         this.loading = false
@@ -98,8 +116,8 @@ export default {
       }
       this.cssConfig.configId = this.configId;
       this.loading = true
-      // 修改配置
-      HttpUtil.post('/cssConfig/update', this.cssConfig).then((res)=> {
+      // 修改配置 - 单机版模拟数据
+      Promise.resolve({ data: 1 }).then((res)=> {
         if(res.data > 0) {
           this.$message.success('修改成功！')
           this.getConfig();
