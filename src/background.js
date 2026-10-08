@@ -6,7 +6,8 @@ import {
   Menu,
   dialog,
   Tray,
-  screen
+  screen,
+  shell
 } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import nodes7 from 'nodes7';
@@ -160,6 +161,13 @@ app.on('ready', () => {
     mainWindow.loadURL('app://./index.html');
     // mainWindow.webContents.openDevTools();
   }
+  // grwebapp 启动会改 window.location，拦住以免 Electron 窗口被导航走
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('grwebapp:')) {
+      event.preventDefault();
+      shell.openExternal(url).catch(() => {});
+    }
+  });
   ipcMain.on('logStatus', (event, arg) => {
     console.log(arg);
     if (arg === 'login') {
@@ -204,15 +212,15 @@ app.on('ready', () => {
       height: screen.getPrimaryDisplay().workAreaSize.height - 20
     });
   });
-  // 启动plc conPLC
+  // 启动plc conPLC（防重入：已连接或正在连接时直接忽略）
   ipcMain.on('conPLC', (event, arg1, arg2) => {
     if (process.env.NODE_ENV === 'production') {
+      if (plcConnected || plcConnecting) {
+        logger.info('PLC已连接或正在连接中，忽略本次conPLC请求');
+        return;
+      }
       conPLC();
     }
-    // setInterval(() => {
-    //   console.log(writeStrArr.toString());
-    // }, 50);
-    // sendHeartToPLC()
   });
   mainWindow.on('maximize', () => {
     mainWindow.webContents.send('mainWin-max', 'max-window');
@@ -404,6 +412,12 @@ function synAccData() {
 }
 
 function conPLC() {
+  // 延时重试会直接调用本函数，必须在这里挡，否则会和正在进行的连接叠在一起
+  if (plcConnected || plcConnecting) {
+    logger.info('PLC已连接或正在连接中，忽略本次conPLC请求');
+    return;
+  }
+  plcConnecting = true;
   logger.info('开始连接PLC');
   // 查询配置
   HttpUtil.get('/cssConfig/getConfig')
@@ -412,7 +426,9 @@ function conPLC() {
       if (!res.data.plcPort) {
         logger.info('配置查询失败');
         // We have an error. Maybe the PLC is not reachable.
-        conPLC();
+        // 延时重试，避免同步递归爆栈
+        plcConnecting = false;
+        setTimeout(conPLC, 3000);
         return false;
       }
       conn.initiateConnection(
@@ -427,7 +443,9 @@ function conPLC() {
           if (typeof err !== 'undefined') {
             logger.info('连接PLC失败' + JSON.stringify(err));
             // We have an error. Maybe the PLC is not reachable.
-            conPLC();
+            // 延时重试，避免同步递归爆栈
+            plcConnecting = false;
+            setTimeout(conPLC, 3000);
             return false;
             // process.exit();
           }
@@ -462,34 +480,81 @@ function conPLC() {
           // L区速度
           conn.addItems('DBW84');
 
-          // 读DBW6和DBW62
-          setInterval(() => {
-            conn.readAllItems(valuesReady);
-          }, 50);
-          setInterval(() => {
-            // nodes7 代码
-            conn.writeItems(writeAddArr, writeStrArr, valuesWritten);
-          }, 100);
-          // 发送心跳
-          sendHeartToPLC();
+          plcConnecting = false;
+          plcConnected = true;
+          // 单连接串行读写，避免 read/write 并发导致请求积压、整批 BAD 255
+          startPlcIoScheduler();
         }
       );
     })
     .catch((err) => {
       logger.info('config error!');
+      // 延时重试，避免同步递归爆栈
+      plcConnecting = false;
+      setTimeout(conPLC, 3000);
     });
 }
-let times = 1;
-let nowValue = 0;
-function sendHeartToPLC() {
-  setInterval(() => {
-    if (times > 5) {
-      times = 1;
-      nowValue = 1 - nowValue;
+
+/** PLC IO：同一时刻只允许一次读或一次写 */
+const PLC_IO_CYCLE_MS = 50;
+let plcIoBusy = false;
+let plcIoPhase = 'read'; // 'read' | 'write'
+let plcIoSchedulerStarted = false;
+let plcConnecting = false;
+let plcConnected = false;
+/** 写周期计数：每 3 次写翻转一次 DBW0（写约 100ms/次 → 心跳约 300ms） */
+let heartWriteCount = 1;
+let heartValue = 0;
+
+function startPlcIoScheduler() {
+  if (plcIoSchedulerStarted) return;
+  plcIoSchedulerStarted = true;
+  setInterval(tickPlcIo, PLC_IO_CYCLE_MS);
+}
+
+/** 写前更新心跳缓冲，随本拍 writeItems 一并下发 */
+function refreshHeartBuffer() {
+  if (heartWriteCount > 2) {
+    heartWriteCount = 1;
+    heartValue = 1 - heartValue;
+  }
+  heartWriteCount++;
+  writeValuesToPLC('DBW0', heartValue);
+}
+
+function tickPlcIo() {
+  if (plcIoBusy) return;
+
+  if (plcIoPhase === 'read') {
+    plcIoBusy = true;
+    conn.readAllItems((anythingBad, values) => {
+      try {
+        valuesReady(anythingBad, values);
+      } finally {
+        plcIoBusy = false;
+        plcIoPhase = 'write';
+      }
+    });
+    return;
+  }
+
+  if (!writeAddArr.length) {
+    plcIoPhase = 'read';
+    return;
+  }
+
+  refreshHeartBuffer();
+  plcIoBusy = true;
+  const addrs = writeAddArr.slice();
+  const vals = writeStrArr.slice();
+  conn.writeItems(addrs, vals, (anythingBad) => {
+    try {
+      valuesWritten(anythingBad);
+    } finally {
+      plcIoBusy = false;
+      plcIoPhase = 'read';
     }
-    times++;
-    writeValuesToPLC('DBW0', nowValue);
-  }, 200); // 每200毫秒执行一次交替
+  });
 }
 
 function createFile(fileNameVal) {

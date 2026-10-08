@@ -76,8 +76,12 @@
                 <div class="data-card-border-borderTop granient-text">
                   束下实时速度
                 </div>
-                <div class="data-card-border-borderDown">
-                  {{ lightBeamRealTimeSpeed }}mm/分钟
+                <div
+                  class="data-card-border-borderDown"
+                  ref="beamSpeedText"
+                  v-once
+                >
+                  0mm/分钟
                 </div>
               </div>
             </div>
@@ -217,9 +221,7 @@
             ref="child"
           >
             <img src="./img/fushe2x.png" class="fusheIcon" />
-            <transition name="el-fade-in-linear">
-              <img src="./img/deng.png" class="fusheguang" v-show="dengShow" />
-            </transition>
+            <img src="./img/deng.png" class="fusheguang deng-blink" />
             <img
               src="./img/chuansongdai.webp"
               style="width: 889.67px; height: 682.66px; margin-top: 60px"
@@ -963,8 +965,6 @@ export default {
   props: {},
   data() {
     return {
-      // 镭射灯样式闪烁显示
-      dengShow: true,
       // 当前上货数
       nowInNum: 0,
       // 当前下货数
@@ -1270,15 +1270,22 @@ export default {
           if (this.arrAB.length > 0) {
             // 进入B的下降沿，获取AB队列第一个，开始计算时间，到时间后，进行工艺对比，判断货物是否合格
             const boxImitateId = this.arrAB[0].boxImitateId;
+            // 优先读非响应式缓存的最新值（响应式属性已被显示节流，可能滞后），保证业务时序用最新速度
+            const rawDisplay = this._rawDisplay || {};
+            const realTimeSpeed =
+              rawDisplay.lightBeamRealTimeSpeed != null
+                ? rawDisplay.lightBeamRealTimeSpeed
+                : this.lightBeamRealTimeSpeed;
+            const speedProportion =
+              rawDisplay.shuxiaSpeedProportion != null
+                ? rawDisplay.shuxiaSpeedProportion
+                : this.shuxiaSpeedProportion;
             // 计算时间 改为任务管理
             const times = this.calculateMilliseconds(
-              (Number(this.l11) / Number(this.lightBeamRealTimeSpeed)).toFixed(
-                2
-              ),
+              (Number(this.l11) / Number(realTimeSpeed)).toFixed(2),
               (
                 Number(this.l2) /
-                (Number(this.orderMainDy.sxSpeedSet) *
-                  (this.shuxiaSpeedProportion / 100))
+                (Number(this.orderMainDy.sxSpeedSet) * (speedProportion / 100))
               ).toFixed(2)
             );
             this.createLog(
@@ -1288,13 +1295,13 @@ export default {
                 '开始进入B点，计算时间-L1长度：' +
                 this.l11 +
                 ' 束下速度：' +
-                this.lightBeamRealTimeSpeed +
+                realTimeSpeed +
                 ' 束下设置速度：' +
                 this.orderMainDy.sxSpeedSet +
                 ' L2长度：' +
                 this.l2 +
                 ' 束下速度比' +
-                this.shuxiaSpeedProportion +
+                speedProportion +
                 ' 总时间：' +
                 times,
               'log'
@@ -3012,9 +3019,14 @@ export default {
       const pointjLength = this.pointjLength;
       const pointkLength = this.pointkLength;
       const pointlLength = this.pointlLength;
-      const jAreaSpeed = this.jAreaSpeed;
-      const kAreaSpeed = this.kAreaSpeed;
-      const lAreaSpeed = this.lAreaSpeed;
+      // 优先读非响应式缓存的最新速度值（响应式属性已被显示节流，可能滞后）
+      const rawDisplay = this._rawDisplay || {};
+      const jAreaSpeed =
+        rawDisplay.jAreaSpeed != null ? rawDisplay.jAreaSpeed : this.jAreaSpeed;
+      const kAreaSpeed =
+        rawDisplay.kAreaSpeed != null ? rawDisplay.kAreaSpeed : this.kAreaSpeed;
+      const lAreaSpeed =
+        rawDisplay.lAreaSpeed != null ? rawDisplay.lAreaSpeed : this.lAreaSpeed;
       if (!this.isDelayPointTime) {
         this.createLog(
           moment().format('YYYY-MM-DD HH:mm:ss') +
@@ -3741,12 +3753,43 @@ export default {
     }
   },
   created() {
+    // 非响应式高频显示数据缓存（速度类），由 200ms 节流定时器写入响应式属性
+    this._rawDisplay = {
+      lightBeamRealTimeSpeed: null,
+      jAreaSpeed: null,
+      kAreaSpeed: null,
+      lAreaSpeed: null,
+      shuxiaSpeedProportion: null
+    };
     this.getConfig();
   },
   mounted() {
+    // 高频显示数据节流刷新：速度数字直接改 DOM，避免写入响应式数据导致整页重渲染
     setInterval(() => {
-      this.dengShow = !this.dengShow;
-    }, 1000);
+      const raw = this._rawDisplay;
+      if (!raw) return;
+      if (raw.lightBeamRealTimeSpeed !== null) {
+        const el = this.$refs.beamSpeedText;
+        if (el) {
+          const text = raw.lightBeamRealTimeSpeed + 'mm/分钟';
+          if (el.textContent !== text) {
+            el.textContent = text;
+          }
+        }
+      }
+      if (raw.jAreaSpeed !== null) {
+        this.jAreaSpeed = raw.jAreaSpeed;
+      }
+      if (raw.kAreaSpeed !== null) {
+        this.kAreaSpeed = raw.kAreaSpeed;
+      }
+      if (raw.lAreaSpeed !== null) {
+        this.lAreaSpeed = raw.lAreaSpeed;
+      }
+      if (raw.shuxiaSpeedProportion !== null) {
+        this.shuxiaSpeedProportion = raw.shuxiaSpeedProportion;
+      }
+    }, 200);
     // 订阅<状态球>eventBus发布的消息
     ipcRenderer.on('receivedMsg', (event, values, values2) => {
       // --------无PLC测试时，这里以下代码毙掉--------
@@ -3773,16 +3816,17 @@ export default {
       );
       this.status104 = this.dianJiStatusArr[3];
       this.status105 = this.dianJiStatusArr[2];
-      this.lightBeamRealTimeSpeed = Number(values.DBW68);
-      this.jAreaSpeed = Number(values.DBW80);
-      this.kAreaSpeed = Number(values.DBW82);
-      this.lAreaSpeed = Number(values.DBW84);
+      // 速度类高频波动数据先写入非响应式缓存，由 200ms 定时器节流刷新，避免 20Hz 全量重渲染
+      this._rawDisplay.lightBeamRealTimeSpeed = Number(values.DBW68);
+      this._rawDisplay.jAreaSpeed = Number(values.DBW80);
+      this._rawDisplay.kAreaSpeed = Number(values.DBW82);
+      this._rawDisplay.lAreaSpeed = Number(values.DBW84);
       // 上料固定扫码
       this.loadScanCodeTemp = values.DBB100 ?? '';
       // 迷宫出口固定扫码
       this.labyrinthScanCodeTemp = values.DBB130 ?? '';
-      // 束下输送速度比
-      this.shuxiaSpeedProportion = Number(values.DBW76);
+      // 束下输送速度比（同样节流）
+      this._rawDisplay.shuxiaSpeedProportion = Number(values.DBW76);
       // 监控报警日志
       if (values.DBW66 != null && values.DBW66 != undefined) {
         this.errorModArr = this.PrefixZero(
@@ -3908,6 +3952,9 @@ export default {
     position: absolute;
     top: 56px;
     right: 342px;
+    &.deng-blink {
+      animation: dengBlink 2s linear infinite;
+    }
   }
   .chuansongpadding {
     box-sizing: border-box;
@@ -4342,6 +4389,16 @@ export default {
     .pagination-info {
       margin-left: 0;
     }
+  }
+}
+@keyframes dengBlink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
   }
 }
 </style>
